@@ -1,15 +1,41 @@
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.BottomAppBar
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
-import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.withSave
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyShortcut
+import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.useResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.window.*
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.lang.Float.min
 import kotlin.system.measureTimeMillis
+
+enum class Actions(private val actionString: String) {
+    OPEN("Open"),
+    SAVE("Save"),
+    SAVEAS("Save as");
+
+    override fun toString(): String = actionString
+}
 
 enum class ImageType {
     P5, P6
@@ -130,18 +156,71 @@ fun openFileDialog(parent : Frame): File {
     return file
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
+    var logs by remember { mutableStateOf("") }
+    // TODO: delete this, get bitmap from onClick event within Open (CTRL+O) action
+    var bitmap = remember { useResource("sample.png", ::loadImageBitmap) }
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Compose for Desktop",
-        state = rememberWindowState(width = 480.dp, height = 480.dp)
+        title = "Nascar95 GUI",
+        state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified)
     ) {
-        MaterialTheme {
-            Button(onClick = {
-                openFileDialog(this.window)
-            }) {
-                Text("File Picker")
+        MenuBar {
+            Menu(
+                text = "File",
+                mnemonic = 'F'
+            ) {
+                Item(
+                    Actions.OPEN.toString(),
+                    onClick = {
+                        openFileDialog(window)
+                        logs = "Meta-info"
+                              },
+                    shortcut = KeyShortcut(Key.O, ctrl = true)
+                )
+                Item(
+                    Actions.SAVE.toString(),
+                    onClick = { logs = "saved" },
+                    shortcut = KeyShortcut(Key.S, ctrl = true)
+                )
+                Item(
+                    Actions.SAVEAS.toString(),
+                    onClick = { logs = "saved as" },
+                    shortcut = KeyShortcut(Key.S, ctrl = true)
+                )
             }
         }
+
+        Scaffold (
+            topBar = {
+                Canvas(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val scalingCoefficient = min(size.height / bitmap.height, size.width / bitmap.width)
+                    scale(
+                        scaleX = scalingCoefficient,
+                        scaleY = scalingCoefficient,
+                        pivot = Offset.Zero
+                    ) {
+                        drawIntoCanvas { canvas ->
+                            canvas.withSave {
+                                canvas.drawImage(bitmap, Offset.Zero, Paint())
+                            }
+                        }
+                    }
+                }
+            },
+            bottomBar = {
+                BottomAppBar(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        textAlign = TextAlign.Left,
+                        text = logs
+                    )
+                }
+            }
+        ) {}
     }
 }
