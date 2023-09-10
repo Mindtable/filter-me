@@ -1,6 +1,7 @@
 package ru.itmo.graphics.image.type
 
 import ru.itmo.graphics.model.ImageType
+import ru.itmo.graphics.model.image.SkiaSupported
 import java.io.File
 
 class SkiaSupportedTypeResolver : TypeResolver {
@@ -22,7 +23,7 @@ class SkiaSupportedTypeResolver : TypeResolver {
             it.equals(extension, ignoreCase = true)
         }
         return if (isFileSupported) {
-            ImageType.SKIA_SUPPORTED
+            SkiaSupported()
         } else {
             null
         }

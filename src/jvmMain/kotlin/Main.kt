@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.withSave
@@ -30,16 +31,16 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.ImageInfo
 import ru.itmo.graphics.image.type.FileTypeResolver
 import ru.itmo.graphics.image.type.P5TypeResolver
 import ru.itmo.graphics.image.type.P6TypeResolver
 import ru.itmo.graphics.image.type.SkiaSupportedTypeResolver
 import ru.itmo.graphics.model.ImageModel
-import ru.itmo.graphics.model.ImageType
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.lang.Float.min
 import kotlin.system.measureTimeMillis
@@ -53,106 +54,57 @@ enum class Actions(private val actionString: String) {
     override fun toString(): String = actionString
 }
 
-fun isWhitespace(c: Int): Boolean {
-    return c == 8 || c == 10 || c == 13 || c == 32
-}
 
-fun readWhitespace(fileStream: ByteArrayInputStream): Int {
-    val c = fileStream.read()
-
-    if (!isWhitespace(c)) {
-        throw Exception("Expected whitespace character, encountered: $c")
-    }
-
-    return c
-}
-
-fun readNumber(fileStream: ByteArrayInputStream): Int {
-    var number = 0
-    var c = fileStream.read()
-    while (c.toChar().minus('0') in 0..9) {
-        number = number * 10 + c.toChar().minus('0')
-        c = fileStream.read()
-    }
-
-    if (!isWhitespace(c)) {
-        throw Exception("Expected digit character, encountered: ${c.toChar()} ($c)")
-    }
-
-    return number
-}
-
-fun readPositiveNumber(fileStream: ByteArrayInputStream): Int {
-    val number = readNumber(fileStream)
-
-    if (number <= 0) {
-        throw Exception("Number must be positive. Got $number")
-    }
-
-    return number
-}
-
-fun readColorValue(fileStream: ByteArrayInputStream, maxValue: Int): Float {
-    var value = fileStream.read()
-    if (maxValue > 255) {
-        value.shl(8)
-        value += fileStream.read()
-    }
-
-    return value.toFloat() / maxValue
-}
-
-fun readPnm(imageModel: ImageModel): ImageBitmap {
+fun readImage(imageModel: ImageModel): ImageBitmap {
     val (file, byteArray, imageType) = imageModel
 
-    if (imageType !in setOf(ImageType.P5, ImageType.P6)) {
-        throw IllegalStateException("Image type not supported for pnm read function")
+    if (!imageType.isSupported) {
+        throw IllegalStateException("Image type not supported for image read function")
     }
 
-    lateinit var pixelMap: FloatArray
+    lateinit var pixelMap: ByteArray
+    val width: Int
+    val height: Int
 
     val timeInMillis = measureTimeMillis {
         println(file.absolutePath)
 
         val fileStream = byteArray.inputStream()
-        fileStream.readNBytes(2)
 
-        println("Found ${imageType.name} type header")
+        val imageDimension = imageType.readHeader(fileStream)
 
-        readWhitespace(fileStream)
+        width = imageDimension.width
+        height = imageDimension.height
+        val totalPixels = width * height
 
-        val width = readPositiveNumber(fileStream)
-        val height = readPositiveNumber(fileStream)
+        println("Picture is $width pixels by $height pixels (Total $totalPixels pixels)")
 
-        println("Picture is $width pixels by $height pixels (Total ${width * height} pixels)")
+        val totalLen = totalPixels * imageType.bytesPerPixel
 
-        val maxPixelValue = readPositiveNumber(fileStream)
+        pixelMap = ByteArray(totalLen) { 0 }
 
-        if (maxPixelValue > 65536) {
-            throw Exception("MaxValue for pixel can't be more than 65536. Found $maxPixelValue")
+        for (i in 0 until totalPixels) {
+            imageType.readPixelInfo(fileStream, i, pixelMap)
         }
 
-        println("MaxValue for pixel is $maxPixelValue")
-        var totalLen = height * width
-        if (imageType == ImageType.P6) {
-            totalLen *= 3
-        }
-
-        pixelMap = FloatArray(totalLen) { 0f }
-
-        for (i in pixelMap.indices) {
-            pixelMap[i] = readColorValue(fileStream, maxPixelValue)
-        }
-
-        val totalMemory = totalLen.toFloat() * Int.SIZE_BYTES
+        val totalMemory = totalLen.toFloat() * Byte.SIZE_BYTES
         println("Successfully read $totalLen color values. Total memory used: ${totalMemory / 1000 / 1000} Mb")
 
         fileStream.close()
     }
 
     println("Total time used to load: ${timeInMillis.toFloat() / 1000} s")
-    // TODO: issue #3
-    return ImageBitmap(width = 0, height = 0)
+
+
+    val bitmap = Bitmap()
+    bitmap.setImageInfo(ImageInfo(
+        imageType.colorInfo,
+        width,
+        height
+    ))
+    bitmap.installPixels(pixelMap)
+
+    return bitmap.asComposeImageBitmap()
 }
 
 fun chooseFile(parent: Frame): File = FileDialog(parent, "Select File", FileDialog.LOAD)
@@ -193,8 +145,8 @@ fun main() = application {
     val bitmap by remember(image) {
         mutableStateOf(
             image?.let {
-                when (it.type) {
-                    ImageType.P5, ImageType.P6 -> readPnm(it)
+                when (it.type.isSupported) {
+                    true -> readImage(it)
                     else -> loadImageBitmap(it.data.inputStream())
                 }
             } ?: loadDefaultImage(),
