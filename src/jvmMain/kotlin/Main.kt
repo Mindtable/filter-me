@@ -5,10 +5,12 @@ import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
@@ -17,8 +19,6 @@ import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.withSave
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.useResource
@@ -26,34 +26,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.FrameWindowScope
-import androidx.compose.ui.window.MenuBar
+import androidx.compose.ui.window.LocalWindowExceptionHandlerFactory
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowExceptionHandler
+import androidx.compose.ui.window.WindowExceptionHandlerFactory
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ImageInfo
+import ru.itmo.graphics.fetch.fetchImageModelUseCase
 import ru.itmo.graphics.image.type.FileTypeResolver
 import ru.itmo.graphics.image.type.P5TypeResolver
 import ru.itmo.graphics.image.type.P6TypeResolver
 import ru.itmo.graphics.image.type.SkiaSupportedTypeResolver
+import ru.itmo.graphics.model.ApplicationState
 import ru.itmo.graphics.model.ImageModel
+import ru.itmo.graphics.view.MenuBarView
 import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 import java.lang.Float.min
 import kotlin.system.measureTimeMillis
-
-enum class Actions(private val actionString: String) {
-    OPEN("Open"),
-    SAVE("Save"),
-    SAVEAS("Save as"),
-    ;
-
-    override fun toString(): String = actionString
-}
-
 
 fun readImage(imageModel: ImageModel): ImageBitmap {
     val (file, byteArray, imageType) = imageModel
@@ -95,13 +90,14 @@ fun readImage(imageModel: ImageModel): ImageBitmap {
 
     println("Total time used to load: ${timeInMillis.toFloat() / 1000} s")
 
-
     val bitmap = Bitmap()
-    bitmap.setImageInfo(ImageInfo(
-        imageType.colorInfo,
-        width,
-        height
-    ))
+    bitmap.setImageInfo(
+        ImageInfo(
+            imageType.colorInfo,
+            width,
+            height,
+        ),
+    )
     bitmap.installPixels(pixelMap)
 
     return bitmap.asComposeImageBitmap()
@@ -113,107 +109,92 @@ fun chooseFile(parent: Frame): File = FileDialog(parent, "Select File", FileDial
         isVisible = true
     }.files.first()
 
-fun main() = application {
-    val typeResolver by lazy {
-        FileTypeResolver(
-            listOf(
-                P5TypeResolver(),
-                P6TypeResolver(),
-                SkiaSupportedTypeResolver(),
-            ),
-        )
-    }
-    var logs by remember { mutableStateOf("") }
-    var fileName by remember { mutableStateOf<String?>(null) }
-    val image by remember(fileName) {
-        mutableStateOf(
-            fileName?.runCatching {
-                File(this)
-            }?.mapCatching {
-                val data = it.readBytes()
+@OptIn(ExperimentalComposeUiApi::class)
+fun main() {
+    var lastError: Throwable? by mutableStateOf(null)
 
-                val type = typeResolver.resolveType(it, data)
-
-                ImageModel(
-                    file = it,
-                    data = data,
-                    type = type,
-                )
-            }?.getOrNull(),
-        )
-    }
-    val bitmap by remember(image) {
-        mutableStateOf(
-            image?.let {
-                when (it.type.isSupported) {
-                    true -> readImage(it)
-                    else -> loadImageBitmap(it.data.inputStream())
+    application {
+        val applicationState = remember { ApplicationState() }
+        CompositionLocalProvider(
+            LocalWindowExceptionHandlerFactory provides WindowExceptionHandlerFactory { window ->
+                WindowExceptionHandler {
+                    lastError = it
+                    applicationState.rollbackOnError("${it.message}}")
                 }
-            } ?: loadDefaultImage(),
-        )
-    }
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "Nascar95 GUI",
-        state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified),
-    ) {
-        setMinWindowSize()
-        MenuBar {
-            Menu(
-                text = "File",
-                mnemonic = 'F',
-            ) {
-                Item(
-                    Actions.OPEN.toString(),
-                    onClick = {
-                        fileName = chooseFile(window).absolutePath
-                        logs = "Meta-info.\nFileName: '$fileName'"
-                    },
-                    shortcut = KeyShortcut(Key.O, ctrl = true),
-                )
-                Item(
-                    Actions.SAVE.toString(),
-                    onClick = { logs = "saved" },
-                    shortcut = KeyShortcut(Key.S, ctrl = true),
-                )
-                Item(
-                    Actions.SAVEAS.toString(),
-                    onClick = { logs = "saved as" },
-                    shortcut = KeyShortcut(Key.S, ctrl = true, shift = true),
+            },
+        ) {
+            val logger by lazy {
+                KotlinLogging.logger { }
+            }
+            val typeResolver by lazy {
+                FileTypeResolver(
+                    listOf(
+                        P5TypeResolver(),
+                        P6TypeResolver(),
+                        SkiaSupportedTypeResolver(),
+                    ),
                 )
             }
-        }
+            val image by remember(applicationState.currentImageFileName) {
+                mutableStateOf(
+                    applicationState.currentImageFileName?.let {
+                        fetchImageModelUseCase(it, typeResolver)
+                    },
+                )
+            }
+            val bitmap by remember(image) {
+                mutableStateOf(
+                    image?.let {
+                        when (it.type.isSupported) {
+                            true -> readImage(it)
+                            else -> loadImageBitmap(it.data.inputStream())
+                        }
+                    } ?: loadDefaultImage(),
+                )
+            }
+            Window(
+                onCloseRequest = ::exitApplication,
+                title = "Nascar95 GUI",
+                state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified),
+            ) {
+                setMinWindowSize()
+                MenuBarView(applicationState)
 
-        Scaffold(
-            topBar = {
-                Canvas(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    val scalingCoefficient = min(size.height / bitmap.height, size.width / bitmap.width)
-                    scale(
-                        scaleX = scalingCoefficient,
-                        scaleY = scalingCoefficient,
-                        pivot = Offset.Zero,
-                    ) {
-                        drawIntoCanvas { canvas ->
-                            canvas.withSave {
-                                canvas.drawImage(bitmap, Offset.Zero, Paint())
+                Scaffold(
+                    topBar = {
+                        Canvas(
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            val scalingCoefficient = min(size.height / bitmap.height, size.width / bitmap.width)
+                            scale(
+                                scaleX = scalingCoefficient,
+                                scaleY = scalingCoefficient,
+                                pivot = Offset.Zero,
+                            ) {
+                                drawIntoCanvas {
+                                    logger.info { "Canvas redrawn" }
+                                    it.withSave {
+                                        it.drawImage(bitmap, Offset.Zero, Paint())
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            },
-            bottomBar = {
-                BottomAppBar(
-                    modifier = Modifier.fillMaxWidth(),
+                    },
+                    bottomBar = {
+                        BottomAppBar(
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                textAlign = TextAlign.Left,
+                                text = applicationState.log ?: "",
+                            )
+                        }
+                    },
                 ) {
-                    Text(
-                        textAlign = TextAlign.Left,
-                        text = logs,
-                    )
+                    logger.info { "Scaffold redrawn" }
                 }
-            },
-        ) {}
+            }
+        }
     }
 }
 
