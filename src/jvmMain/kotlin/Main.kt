@@ -4,11 +4,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Paint
@@ -21,18 +20,24 @@ import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.window.*
+import androidx.compose.ui.window.MenuBar
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.FileInputStream
 import java.lang.Float.min
 import kotlin.system.measureTimeMillis
 
 enum class Actions(private val actionString: String) {
     OPEN("Open"),
     SAVE("Save"),
-    SAVEAS("Save as");
+    SAVEAS("Save as"),
+    ;
 
     override fun toString(): String = actionString
 }
@@ -41,22 +46,21 @@ enum class ImageType {
     P5, P6
 }
 
-fun isWhitespace(c: Int) : Boolean {
+fun isWhitespace(c: Int): Boolean {
     return c == 8 || c == 10 || c == 13 || c == 32
 }
 
-fun readWhitespace(fileStream: ByteArrayInputStream) : Int {
+fun readWhitespace(fileStream: ByteArrayInputStream): Int {
     val c = fileStream.read()
 
-    if (!isWhitespace(c))
-    {
+    if (!isWhitespace(c)) {
         throw Exception("Expected whitespace character, encountered: $c")
     }
 
     return c
 }
 
-fun readNumber(fileStream: ByteArrayInputStream) : Int {
+fun readNumber(fileStream: ByteArrayInputStream): Int {
     var number = 0
     var c = fileStream.read()
     while (c.toChar().minus('0') in 0..9) {
@@ -64,29 +68,26 @@ fun readNumber(fileStream: ByteArrayInputStream) : Int {
         c = fileStream.read()
     }
 
-    if (!isWhitespace(c))
-    {
+    if (!isWhitespace(c)) {
         throw Exception("Expected digit character, encountered: ${c.toChar()} ($c)")
     }
 
     return number
 }
 
-fun readPositiveNumber(fileStream: ByteArrayInputStream) : Int {
+fun readPositiveNumber(fileStream: ByteArrayInputStream): Int {
     val number = readNumber(fileStream)
 
-    if (number <= 0)
-    {
+    if (number <= 0) {
         throw Exception("Number must be positive. Got $number")
     }
 
     return number
 }
 
-fun readColorValue(fileStream: ByteArrayInputStream, maxValue: Int) : Float {
+fun readColorValue(fileStream: ByteArrayInputStream, maxValue: Int): Float {
     var value = fileStream.read()
-    if (maxValue > 255)
-    {
+    if (maxValue > 255) {
         value.shl(8)
         value += fileStream.read()
     }
@@ -94,17 +95,13 @@ fun readColorValue(fileStream: ByteArrayInputStream, maxValue: Int) : Float {
     return value.toFloat() / maxValue
 }
 
-fun openFileDialog(parent : Frame): File {
-    val file = FileDialog(parent, "Select File", FileDialog.LOAD).apply {
-        isMultipleMode = false
-        isVisible = true
-    }.files.first()
+fun openFileDialog(parent: Frame): File {
+    val file = chooseFile(parent)
 
     var imageType: ImageType
     lateinit var pixelMap: FloatArray
 
     val timeInMillis = measureTimeMillis {
-
         println(file.absolutePath)
 
         val byteArray = file.readBytes()
@@ -156,52 +153,61 @@ fun openFileDialog(parent : Frame): File {
     return file
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+fun chooseFile(parent: Frame): File = FileDialog(parent, "Select File", FileDialog.LOAD)
+    .apply {
+        isMultipleMode = false
+        isVisible = true
+    }.files.first()
+
 fun main() = application {
     var logs by remember { mutableStateOf("") }
-    // TODO: delete this, get bitmap from onClick event within Open (CTRL+O) action
-    var bitmap = remember { useResource("sample.png", ::loadImageBitmap) }
+    var fileName by remember { mutableStateOf<String?>(null) }
+    val bitmap by remember(fileName) {
+        mutableStateOf(
+            loadBitmapFromDisk(fileName),
+        )
+    }
     Window(
         onCloseRequest = ::exitApplication,
         title = "Nascar95 GUI",
-        state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified)
+        state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified),
     ) {
         MenuBar {
             Menu(
                 text = "File",
-                mnemonic = 'F'
+                mnemonic = 'F',
             ) {
                 Item(
                     Actions.OPEN.toString(),
                     onClick = {
-                        openFileDialog(window)
-                        logs = "Meta-info"
-                              },
-                    shortcut = KeyShortcut(Key.O, ctrl = true)
+                        fileName = chooseFile(window).absolutePath
+                        logs = "Meta-info.\nFileName: '$fileName'"
+                    },
+                    shortcut = KeyShortcut(Key.O, ctrl = true),
                 )
                 Item(
                     Actions.SAVE.toString(),
                     onClick = { logs = "saved" },
-                    shortcut = KeyShortcut(Key.S, ctrl = true)
+                    shortcut = KeyShortcut(Key.S, ctrl = true),
                 )
                 Item(
                     Actions.SAVEAS.toString(),
                     onClick = { logs = "saved as" },
-                    shortcut = KeyShortcut(Key.S, ctrl = true)
+                    shortcut = KeyShortcut(Key.S, ctrl = true),
                 )
             }
         }
 
-        Scaffold (
+        Scaffold(
             topBar = {
                 Canvas(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     val scalingCoefficient = min(size.height / bitmap.height, size.width / bitmap.width)
                     scale(
                         scaleX = scalingCoefficient,
                         scaleY = scalingCoefficient,
-                        pivot = Offset.Zero
+                        pivot = Offset.Zero,
                     ) {
                         drawIntoCanvas { canvas ->
                             canvas.withSave {
@@ -217,10 +223,24 @@ fun main() = application {
                 ) {
                     Text(
                         textAlign = TextAlign.Left,
-                        text = logs
+                        text = logs,
                     )
                 }
-            }
+            },
         ) {}
     }
+}
+
+private fun loadBitmapFromDisk(
+    fileName: String?,
+) = with(KotlinLogging.logger { }) {
+    fileName.also { info { "Start loading file $fileName" } }
+        ?.let {
+            FileInputStream(it)
+        }
+        ?.use {
+            loadImageBitmap(it)
+        }
+        ?: useResource("sample.png", ::loadImageBitmap)
+            .also { info { "used default file" } }
 }

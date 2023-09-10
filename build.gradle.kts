@@ -1,9 +1,8 @@
-import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    kotlin("multiplatform")
-    id("org.jetbrains.compose")
+    kotlin("multiplatform") version "1.9.0"
+    id("org.jetbrains.compose") version "1.5.0"
 }
 
 group = "ru.itmo.graphics"
@@ -26,6 +25,10 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
+                implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
+                implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
+                implementation("org.apache.logging.log4j:log4j-api:2.20.0")
+                implementation("org.apache.logging.log4j:log4j-core:2.20.0")
             }
         }
         val jvmTest by getting
