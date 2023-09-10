@@ -7,6 +7,10 @@ data class ImageModel(
     val data: ByteArray,
     val type: ImageType,
 ) {
+    fun saveTo(fileName: String) {
+        File(fileName).writeBytes(data)
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -8,6 +8,7 @@ import androidx.compose.ui.window.MenuBar
 import ru.itmo.graphics.model.Actions
 import ru.itmo.graphics.model.ApplicationState
 import ru.itmo.graphics.utils.chooseFileDialog
+import java.awt.FileDialog
 
 @Composable
 fun FrameWindowScope.MenuBarView(applicationState: ApplicationState) {
@@ -19,7 +20,7 @@ fun FrameWindowScope.MenuBarView(applicationState: ApplicationState) {
             Item(
                 Actions.OPEN.toString(),
                 onClick = {
-                    applicationState.onOpenFileClick(chooseFileDialog(window).absolutePath)
+                    applicationState.onOpenFileClick(chooseFileDialog(window, FileDialog.LOAD).absolutePath)
                 },
                 shortcut = KeyShortcut(Key.O, ctrl = true),
             )
@@ -30,7 +31,9 @@ fun FrameWindowScope.MenuBarView(applicationState: ApplicationState) {
             )
             Item(
                 Actions.SAVEAS.toString(),
-                onClick = { applicationState.onSavedAsButtonClick("") },
+                onClick = {
+                    applicationState.onSavedAsButtonClick(chooseFileDialog(window, FileDialog.SAVE).absolutePath)
+                },
                 shortcut = KeyShortcut(Key.S, ctrl = true, shift = true),
             )
         }

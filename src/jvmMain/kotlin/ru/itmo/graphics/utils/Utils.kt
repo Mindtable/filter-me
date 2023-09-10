@@ -4,7 +4,7 @@ import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 
-fun chooseFileDialog(parent: Frame): File = FileDialog(parent, "Select File", FileDialog.LOAD)
+fun chooseFileDialog(parent: Frame, mode: Int): File = FileDialog(parent, "Select File", mode)
     .apply {
         isMultipleMode = false
         isVisible = true

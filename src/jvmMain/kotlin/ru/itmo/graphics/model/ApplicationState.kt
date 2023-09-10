@@ -4,6 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.oshai.kotlinlogging.KotlinLogging
+import ru.itmo.graphics.fetch.fetchImageModelUseCase
+import ru.itmo.graphics.image.type.FileTypeResolver
+import ru.itmo.graphics.image.type.P5TypeResolver
+import ru.itmo.graphics.image.type.P6TypeResolver
+import ru.itmo.graphics.image.type.SkiaSupportedTypeResolver
 
 class ApplicationState {
 
@@ -13,6 +18,20 @@ class ApplicationState {
     var currentImageFileName: String? by mutableStateOf(null)
         private set
 
+    private val typeResolver: FileTypeResolver = FileTypeResolver(
+        listOf(
+            P5TypeResolver(),
+            P6TypeResolver(),
+            SkiaSupportedTypeResolver(),
+        )
+    )
+
+    private var image: ImageModel? by mutableStateOf(
+        currentImageFileName?.let {
+            fetchImageModelUseCase(it, typeResolver, this)
+        }
+    )
+
     private val lastSuccessfulStates: ArrayDeque<ApplicationStateSnapshot> by mutableStateOf(ArrayDeque())
 
     private val logger = KotlinLogging.logger { }
@@ -20,12 +39,18 @@ class ApplicationState {
     fun onSaveButtonClick() {
         addStateToStack()
         logger.info { "onSaveButtonClick call" }
+        image?.let {
+            it.saveTo(it.file.absolutePath)
+        }
         log = "Saved"
     }
 
     fun onSavedAsButtonClick(fileName: String) {
         addStateToStack()
         logger.info { "onSavedAsButtonClick call with $fileName parameter" }
+        image?.let {
+            it.saveTo(fileName)
+        }
         log = "Saved as $fileName"
     }
 
@@ -34,6 +59,9 @@ class ApplicationState {
         addStateToStack()
         log = "Meta info\nFile name: $fileName"
         currentImageFileName = fileName
+        image = currentImageFileName?.let {
+            fetchImageModelUseCase(it, typeResolver, this)
+        }
     }
 
     fun rollbackOnError(errorMsg: String) {
@@ -47,7 +75,7 @@ class ApplicationState {
             log = log,
             fileName = currentImageFileName,
         )
-        logger.info { "Added state tu queue $element" }
+        logger.info { "Added state to queue $element" }
         lastSuccessfulStates.addFirst(
             element,
         )
