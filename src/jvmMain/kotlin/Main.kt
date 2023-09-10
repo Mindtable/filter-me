@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,10 +18,13 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.withSave
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyShortcut
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.useResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -32,6 +36,7 @@ import ru.itmo.graphics.image.type.P6TypeResolver
 import ru.itmo.graphics.image.type.SkiaSupportedTypeResolver
 import ru.itmo.graphics.model.ImageModel
 import ru.itmo.graphics.model.ImageType
+import java.awt.Dimension
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.ByteArrayInputStream
@@ -200,6 +205,7 @@ fun main() = application {
         title = "Nascar95 GUI",
         state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified),
     ) {
+        setMinWindowSize()
         MenuBar {
             Menu(
                 text = "File",
@@ -262,4 +268,12 @@ fun main() = application {
 private fun loadDefaultImage() = with(KotlinLogging.logger { }) {
     useResource("sample.png", ::loadImageBitmap)
         .also { info { "used default file" } }
+}
+
+@Composable
+fun Dp.dpRoundToPx() = with(LocalDensity.current) { this@dpRoundToPx.roundToPx() }
+
+@Composable
+private fun FrameWindowScope.setMinWindowSize() {
+    window.minimumSize = Dimension(100.dp.dpRoundToPx(), 100.dp.dpRoundToPx())
 }
