@@ -37,7 +37,7 @@ abstract class Pnm : ImageType {
         // Image params
         val width = InputStreamUtils.readPositiveNumber(inputStream)
         val height = InputStreamUtils.readPositiveNumber(inputStream)
-        val maxPixelValue = InputStreamUtils.readPositiveNumber(inputStream)
+        maxPixelValue = InputStreamUtils.readPositiveNumber(inputStream)
 
         if (maxPixelValue > 65536) {
             throw Exception("MaxValue for pixel can't be more than 65536. Found $maxPixelValue")
