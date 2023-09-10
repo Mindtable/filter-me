@@ -193,7 +193,7 @@ fun main() = application {
                 Item(
                     Actions.SAVEAS.toString(),
                     onClick = { logs = "saved as" },
-                    shortcut = KeyShortcut(Key.S, ctrl = true),
+                    shortcut = KeyShortcut(Key.S, ctrl = true, shift = true),
                 )
             }
         }
