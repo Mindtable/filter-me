@@ -18,22 +18,22 @@ class ApplicationState {
     private val logger = KotlinLogging.logger { }
 
     fun onSaveButtonClick() {
+        addStateToStack()
         logger.info { "onSaveButtonClick call" }
         log = "Saved"
-        addStateToStack()
     }
 
     fun onSavedAsButtonClick(fileName: String) {
+        addStateToStack()
         logger.info { "onSavedAsButtonClick call with $fileName parameter" }
         log = "Saved as $fileName"
-        addStateToStack()
     }
 
     fun onOpenFileClick(fileName: String) {
         logger.info { "onOpenFileClick call with $fileName parameter" }
+        addStateToStack()
         log = "Meta info\nFile name: $fileName"
         currentImageFileName = fileName
-        addStateToStack()
     }
 
     fun rollbackOnError(errorMsg: String) {

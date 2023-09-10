@@ -138,18 +138,31 @@ fun main() {
             val image by remember(applicationState.currentImageFileName) {
                 mutableStateOf(
                     applicationState.currentImageFileName?.let {
-                        fetchImageModelUseCase(it, typeResolver)
+                        fetchImageModelUseCase(it, typeResolver, applicationState)
                     },
                 )
             }
+            var lastSuccessfulBitmap: ImageBitmap by remember { mutableStateOf(loadDefaultImage()) }
             val bitmap by remember(image) {
                 mutableStateOf(
-                    image?.let {
-                        when (it.type.isSupported) {
-                            true -> readImage(it)
-                            else -> loadImageBitmap(it.data.inputStream())
-                        }
-                    } ?: loadDefaultImage(),
+                    runCatching {
+                        image?.let {
+                            when (it.type.isSupported) {
+                                true -> readImage(it)
+                                else -> loadImageBitmap(it.data.inputStream())
+                            }
+                        } ?: lastSuccessfulBitmap
+                    }.fold(
+                        onSuccess = {
+                            logger.info { "update lastSuccessfulBitmap" }
+                            lastSuccessfulBitmap = it
+                            lastSuccessfulBitmap
+                        },
+                        onFailure = {
+                            logger.info { "use lastSuccessfulBitmap" }
+                            lastSuccessfulBitmap
+                        },
+                    ),
                 )
             }
             Window(

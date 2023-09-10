@@ -3,10 +3,15 @@ package ru.itmo.graphics.fetch
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ru.itmo.graphics.image.type.FileTypeResolver
+import ru.itmo.graphics.model.ApplicationState
 import ru.itmo.graphics.model.ImageModel
 import java.io.File
 
-fun fetchImageModelUseCase(fileName: String, typeResolver: FileTypeResolver): ImageModel? {
+fun fetchImageModelUseCase(
+    fileName: String,
+    typeResolver: FileTypeResolver,
+    applicationState: ApplicationState,
+): ImageModel? {
     val logger = KotlinLogging.logger { }
     logger.info { "Constructing file $fileName" }
 
@@ -26,6 +31,7 @@ fun fetchImageModelUseCase(fileName: String, typeResolver: FileTypeResolver): Im
         }
         .logOnSuccess(logger)
         .logOnFailure(logger)
+        .onFailure { applicationState.rollbackOnError("${it.message}") }
         .getOrNull()
 }
 
