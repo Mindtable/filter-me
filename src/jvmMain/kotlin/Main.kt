@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
@@ -25,11 +26,16 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import io.github.oshai.kotlinlogging.KotlinLogging
+import ru.itmo.graphics.image.type.FileTypeResolver
+import ru.itmo.graphics.image.type.P5TypeResolver
+import ru.itmo.graphics.image.type.P6TypeResolver
+import ru.itmo.graphics.image.type.SkiaSupportedTypeResolver
+import ru.itmo.graphics.model.ImageModel
+import ru.itmo.graphics.model.ImageType
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.FileInputStream
 import java.lang.Float.min
 import kotlin.system.measureTimeMillis
 
@@ -40,10 +46,6 @@ enum class Actions(private val actionString: String) {
     ;
 
     override fun toString(): String = actionString
-}
-
-enum class ImageType {
-    P5, P6
 }
 
 fun isWhitespace(c: Int): Boolean {
@@ -95,26 +97,20 @@ fun readColorValue(fileStream: ByteArrayInputStream, maxValue: Int): Float {
     return value.toFloat() / maxValue
 }
 
-fun openFileDialog(parent: Frame): File {
-    val file = chooseFile(parent)
+fun readPnm(imageModel: ImageModel): ImageBitmap {
+    val (file, byteArray, imageType) = imageModel
 
-    var imageType: ImageType
+    if (imageType !in setOf(ImageType.P5, ImageType.P6)) {
+        throw IllegalStateException("Image type not supported for pnm read function")
+    }
+
     lateinit var pixelMap: FloatArray
 
     val timeInMillis = measureTimeMillis {
         println(file.absolutePath)
 
-        val byteArray = file.readBytes()
         val fileStream = byteArray.inputStream()
-        val type = fileStream.readNBytes(2)
-
-        imageType = if (type[0].toInt() == 80 && type[1].toInt() == 53) {
-            ImageType.P5
-        } else if (type[0].toInt() == 80 && type[1].toInt() == 54) {
-            ImageType.P6
-        } else {
-            throw Exception("Incorrect type header")
-        }
+        fileStream.readNBytes(2)
 
         println("Found ${imageType.name} type header")
 
@@ -150,7 +146,8 @@ fun openFileDialog(parent: Frame): File {
     }
 
     println("Total time used to load: ${timeInMillis.toFloat() / 1000} s")
-    return file
+    // TODO: issue #3
+    return ImageBitmap(width = 0, height = 0)
 }
 
 fun chooseFile(parent: Frame): File = FileDialog(parent, "Select File", FileDialog.LOAD)
@@ -160,11 +157,42 @@ fun chooseFile(parent: Frame): File = FileDialog(parent, "Select File", FileDial
     }.files.first()
 
 fun main() = application {
+    val typeResolver by lazy {
+        FileTypeResolver(
+            listOf(
+                P5TypeResolver(),
+                P6TypeResolver(),
+                SkiaSupportedTypeResolver(),
+            ),
+        )
+    }
     var logs by remember { mutableStateOf("") }
     var fileName by remember { mutableStateOf<String?>(null) }
-    val bitmap by remember(fileName) {
+    val image by remember(fileName) {
         mutableStateOf(
-            loadBitmapFromDisk(fileName),
+            fileName?.runCatching {
+                File(this)
+            }?.mapCatching {
+                val data = it.readBytes()
+
+                val type = typeResolver.resolveType(it, data)
+
+                ImageModel(
+                    file = it,
+                    data = data,
+                    type = type,
+                )
+            }?.getOrNull(),
+        )
+    }
+    val bitmap by remember(image) {
+        mutableStateOf(
+            image?.let {
+                when (it.type) {
+                    ImageType.P5, ImageType.P6 -> readPnm(it)
+                    else -> loadImageBitmap(it.data.inputStream())
+                }
+            } ?: loadDefaultImage(),
         )
     }
     Window(
@@ -231,16 +259,7 @@ fun main() = application {
     }
 }
 
-private fun loadBitmapFromDisk(
-    fileName: String?,
-) = with(KotlinLogging.logger { }) {
-    fileName.also { info { "Start loading file $fileName" } }
-        ?.let {
-            FileInputStream(it)
-        }
-        ?.use {
-            loadImageBitmap(it)
-        }
-        ?: useResource("sample.png", ::loadImageBitmap)
-            .also { info { "used default file" } }
+private fun loadDefaultImage() = with(KotlinLogging.logger { }) {
+    useResource("sample.png", ::loadImageBitmap)
+        .also { info { "used default file" } }
 }
