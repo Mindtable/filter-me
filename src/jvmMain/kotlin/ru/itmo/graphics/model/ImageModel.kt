@@ -8,6 +8,16 @@ data class ImageModel(
     val type: ImageType,
 ) {
     fun saveTo(fileName: String) {
+        // TODO: Add a way to access bitmap in ImageModel, to save properly
+
+//        if (type.isSupported) {
+//            val byteStream = ByteArrayOutputStream()
+//            type.writeFile(byteStream, bitmap)
+//            File(fileName).writeBytes(byteStream.toByteArray())
+//        } else {
+//            File(fileName).writeBytes(data)
+//        }
+
         File(fileName).writeBytes(data)
     }
 
