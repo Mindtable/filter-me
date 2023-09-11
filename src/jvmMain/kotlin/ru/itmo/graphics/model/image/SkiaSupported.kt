@@ -11,8 +11,6 @@ class SkiaSupported : ImageType {
     override val isSupported: Boolean = false
     override val colorInfo: ColorInfo
         get() = TODO("Not yet implemented")
-    override val bytesPerPixel: Int
-        get() = TODO("Not yet implemented")
 
     override fun readHeader(inputStream: InputStream): ImageDimension {
         TODO("Not yet implemented")

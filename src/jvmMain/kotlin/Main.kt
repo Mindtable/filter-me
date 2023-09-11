@@ -66,7 +66,7 @@ fun readImage(imageModel: ImageModel): ImageBitmap {
 
         println("Picture is $width pixels by $height pixels (Total $totalPixels pixels)")
 
-        val totalLen = totalPixels * imageType.bytesPerPixel
+        val totalLen = totalPixels * imageType.colorInfo.bytesPerPixel
 
         pixelMap = ByteArray(totalLen) { 0 }
 

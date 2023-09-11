@@ -1,6 +1,5 @@
 package ru.itmo.graphics.model.image
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ImageInfo
 import ru.itmo.graphics.model.ImageDimension
@@ -13,22 +12,12 @@ abstract class Pnm : ImageType {
     protected var maxPixelValue: Int = 0
     abstract val pnmType: ByteArray
 
-    protected val log = KotlinLogging.logger { }
-
-    override val bytesPerPixel: Int
-        get() {
-            return if (maxPixelValue > 255) {
-                colorInfo.bytesPerPixel * 2
-            } else {
-                colorInfo.bytesPerPixel
-            }
-        }
 
     protected fun normaliseDataBlock(inputStream: InputStream): Float {
         var value = inputStream.read()
 
         if (maxPixelValue > 255) {
-            value.shl(8)
+            value = value.shl(8)
             value += inputStream.read()
         }
 
@@ -58,20 +47,11 @@ abstract class Pnm : ImageType {
         outputStream.write(pnmType)
         outputStream.write('\n'.code)
 
-        log.info { "Write width ${bitmap.width}" }
         outputStream.write(bitmap.width.toString().toByteArray())
         outputStream.write(' '.code)
-
-        log.info { "Write height ${bitmap.width}" }
         outputStream.write(bitmap.height.toString().toByteArray())
         outputStream.write('\n'.code)
-
-        if (bitmap.colorInfo.bytesPerPixel == this.colorInfo.bytesPerPixel) {
-            outputStream.write(255.toString().toByteArray())
-        } else {
-            throw IllegalArgumentException("Pnm ${String(pnmType)}. file doesn't support color type ${bitmap.colorType.name}")
-        }
-
+        outputStream.write(maxPixelValue.toString().toByteArray())
         outputStream.write('\n'.code)
 
         val byteArray = bitmap.readPixels(dstInfo = ImageInfo(colorInfo, bitmap.width, bitmap.height))
