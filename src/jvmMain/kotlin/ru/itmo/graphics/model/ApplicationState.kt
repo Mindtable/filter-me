@@ -9,6 +9,7 @@ import ru.itmo.graphics.image.type.FileTypeResolver
 import ru.itmo.graphics.image.type.P5TypeResolver
 import ru.itmo.graphics.image.type.P6TypeResolver
 import ru.itmo.graphics.image.type.SkiaSupportedTypeResolver
+import java.io.File
 
 class ApplicationState {
 

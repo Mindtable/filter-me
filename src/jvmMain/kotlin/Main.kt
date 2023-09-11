@@ -145,7 +145,7 @@ fun main() {
                 state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified),
             ) {
                 setMinWindowSize()
-                MenuBarView(applicationState, applicationState.image)
+                MenuBarView(applicationState)
 
                 Scaffold(
                     topBar = {

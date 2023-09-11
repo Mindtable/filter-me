@@ -1,5 +1,6 @@
 package ru.itmo.graphics.model.image
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ImageInfo
 import ru.itmo.graphics.model.ImageDimension
@@ -11,6 +12,8 @@ import java.io.OutputStream
 abstract class Pnm : ImageType {
     protected var maxPixelValue: Int = 0
     abstract val pnmType: ByteArray
+
+    protected val log = KotlinLogging.logger { }
 
     override val bytesPerPixel: Int
         get() {
@@ -35,7 +38,6 @@ abstract class Pnm : ImageType {
     abstract fun writePixelInfo(outputStream: OutputStream, pixelIndex: Int, byteArray: ByteArray)
 
     override fun readHeader(inputStream: InputStream): ImageDimension {
-
         // Skip PNM type
         inputStream.readNBytes(2)
         InputStreamUtils.readWhitespace(inputStream)
@@ -56,13 +58,16 @@ abstract class Pnm : ImageType {
         outputStream.write(pnmType)
         outputStream.write('\n'.code)
 
-        outputStream.write(bitmap.width)
+        log.info { "Write width ${bitmap.width}" }
+        outputStream.write(bitmap.width.toString().toByteArray())
         outputStream.write(' '.code)
-        outputStream.write(bitmap.height)
+
+        log.info { "Write height ${bitmap.width}" }
+        outputStream.write(bitmap.height.toString().toByteArray())
         outputStream.write('\n'.code)
 
         if (bitmap.colorInfo.bytesPerPixel == this.colorInfo.bytesPerPixel) {
-            outputStream.write(255)
+            outputStream.write(255.toString().toByteArray())
         } else {
             throw IllegalArgumentException("Pnm ${String(pnmType)}. file doesn't support color type ${bitmap.colorType.name}")
         }
