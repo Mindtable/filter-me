@@ -35,18 +35,10 @@ import androidx.compose.ui.window.rememberWindowState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ImageInfo
-import ru.itmo.graphics.fetch.fetchImageModelUseCase
-import ru.itmo.graphics.image.type.FileTypeResolver
-import ru.itmo.graphics.image.type.P5TypeResolver
-import ru.itmo.graphics.image.type.P6TypeResolver
-import ru.itmo.graphics.image.type.SkiaSupportedTypeResolver
 import ru.itmo.graphics.model.ApplicationState
 import ru.itmo.graphics.model.ImageModel
 import ru.itmo.graphics.view.MenuBarView
 import java.awt.Dimension
-import java.awt.FileDialog
-import java.awt.Frame
-import java.io.File
 import java.lang.Float.min
 import kotlin.system.measureTimeMillis
 
@@ -99,15 +91,10 @@ fun readImage(imageModel: ImageModel): ImageBitmap {
         ),
     )
     bitmap.installPixels(pixelMap)
+    imageModel.bitmap = bitmap
 
     return bitmap.asComposeImageBitmap()
 }
-
-fun chooseFile(parent: Frame): File = FileDialog(parent, "Select File", FileDialog.LOAD)
-    .apply {
-        isMultipleMode = false
-        isVisible = true
-    }.files.first()
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -126,27 +113,11 @@ fun main() {
             val logger by lazy {
                 KotlinLogging.logger { }
             }
-            val typeResolver by lazy {
-                FileTypeResolver(
-                    listOf(
-                        P5TypeResolver(),
-                        P6TypeResolver(),
-                        SkiaSupportedTypeResolver(),
-                    ),
-                )
-            }
-            val image by remember(applicationState.currentImageFileName) {
-                mutableStateOf(
-                    applicationState.currentImageFileName?.let {
-                        fetchImageModelUseCase(it, typeResolver, applicationState)
-                    },
-                )
-            }
             var lastSuccessfulBitmap: ImageBitmap by remember { mutableStateOf(loadDefaultImage()) }
-            val bitmap by remember(image) {
+            val bitmap by remember(applicationState.image) {
                 mutableStateOf(
                     runCatching {
-                        image?.let {
+                        applicationState.image?.let {
                             when (it.type.isSupported) {
                                 true -> readImage(it)
                                 else -> loadImageBitmap(it.data.inputStream())
@@ -155,11 +126,14 @@ fun main() {
                     }.fold(
                         onSuccess = {
                             logger.info { "update lastSuccessfulBitmap" }
+                            logger.info { applicationState.image?.bitmap == null }
                             lastSuccessfulBitmap = it
+                            applicationState.onAnySuccess()
                             lastSuccessfulBitmap
                         },
                         onFailure = {
                             logger.info { "use lastSuccessfulBitmap" }
+                            applicationState.rollbackOnError("${it.message}")
                             lastSuccessfulBitmap
                         },
                     ),
@@ -171,7 +145,7 @@ fun main() {
                 state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified),
             ) {
                 setMinWindowSize()
-                MenuBarView(applicationState)
+                MenuBarView(applicationState, applicationState.image)
 
                 Scaffold(
                     topBar = {

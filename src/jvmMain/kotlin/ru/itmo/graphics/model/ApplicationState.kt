@@ -23,13 +23,13 @@ class ApplicationState {
             P5TypeResolver(),
             P6TypeResolver(),
             SkiaSupportedTypeResolver(),
-        )
+        ),
     )
 
-    private var image: ImageModel? by mutableStateOf(
+    var image: ImageModel? by mutableStateOf(
         currentImageFileName?.let {
             fetchImageModelUseCase(it, typeResolver, this)
-        }
+        },
     )
 
     private val lastSuccessfulStates: ArrayDeque<ApplicationStateSnapshot> by mutableStateOf(ArrayDeque())
@@ -45,12 +45,14 @@ class ApplicationState {
         log = "Saved"
     }
 
+    fun onAnySuccess() {
+        addStateToStack()
+    }
+
     fun onSavedAsButtonClick(fileName: String) {
         addStateToStack()
         logger.info { "onSavedAsButtonClick call with $fileName parameter" }
-        image?.let {
-            it.saveTo(fileName)
-        }
+        image?.saveTo(fileName)
         log = "Saved as $fileName"
     }
 
@@ -75,10 +77,10 @@ class ApplicationState {
             log = log,
             fileName = currentImageFileName,
         )
-        logger.info { "Added state to queue $element" }
         lastSuccessfulStates.addFirst(
             element,
         )
+        logger.info { "Added state to queue $element. Current size is ${lastSuccessfulStates.size}" }
 
         if (lastSuccessfulStates.size >= 20) {
             lastSuccessfulStates.removeLast()
@@ -91,7 +93,7 @@ class ApplicationState {
             log = null
             currentImageFileName = null
         } else {
-            val (lastLog, lastFileName) = lastSuccessfulStates.removeLast()
+            val (lastLog, lastFileName) = lastSuccessfulStates.removeFirst()
             logger.info { "Restored state $lastLog $lastFileName" }
 
             log = lastLog

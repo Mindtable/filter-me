@@ -1,24 +1,30 @@
 package ru.itmo.graphics.model
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.skia.Bitmap
+import java.io.ByteArrayOutputStream
 import java.io.File
 
 data class ImageModel(
     val file: File,
     val data: ByteArray,
     val type: ImageType,
+    var bitmap: Bitmap?,
 ) {
+    private val log by lazy {
+        KotlinLogging.logger { }
+    }
+
     fun saveTo(fileName: String) {
-        // TODO: Add a way to access bitmap in ImageModel, to save properly
-
-//        if (type.isSupported) {
-//            val byteStream = ByteArrayOutputStream()
-//            type.writeFile(byteStream, bitmap)
-//            File(fileName).writeBytes(byteStream.toByteArray())
-//        } else {
-//            File(fileName).writeBytes(data)
-//        }
-
-        File(fileName).writeBytes(data)
+        if (type.isSupported && bitmap != null) {
+            log.info { "Save as PPM" }
+            val byteStream = ByteArrayOutputStream()
+            type.writeFile(byteStream, bitmap!!)
+            File(fileName).writeBytes(byteStream.toByteArray())
+        } else {
+            log.info { "Save by default way" }
+            File(fileName).writeBytes(data)
+        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -36,5 +42,3 @@ data class ImageModel(
         return file.hashCode()
     }
 }
-
-

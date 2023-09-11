@@ -27,6 +27,7 @@ fun fetchImageModelUseCase(
                 file = it,
                 data = data,
                 type = type,
+                bitmap = null,
             )
         }
         .logOnSuccess(logger)
