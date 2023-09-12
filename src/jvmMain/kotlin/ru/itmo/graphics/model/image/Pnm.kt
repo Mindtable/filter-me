@@ -21,6 +21,8 @@ abstract class Pnm : ImageType {
             value += inputStream.read()
         }
 
+        value = value.coerceIn(0 .. maxPixelValue)
+
         return value.toFloat() / maxPixelValue
     }
 
