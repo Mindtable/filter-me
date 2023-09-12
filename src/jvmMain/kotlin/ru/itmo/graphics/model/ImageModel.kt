@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.skia.Bitmap
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.time.Instant
 
 data class ImageModel(
     val file: File,
@@ -11,6 +12,7 @@ data class ImageModel(
     val type: ImageType,
     var bitmap: Bitmap?,
 ) {
+    private val timeStamp = Instant.now().epochSecond
     private val log by lazy {
         KotlinLogging.logger { }
     }
@@ -33,9 +35,7 @@ data class ImageModel(
 
         other as ImageModel
 
-        if (file != other.file) return false
-
-        return true
+        return timeStamp == other.timeStamp
     }
 
     override fun hashCode(): Int {
