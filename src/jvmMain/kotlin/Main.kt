@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.asComposeImageBitmap
@@ -161,7 +162,9 @@ fun main() {
                                 drawIntoCanvas {
                                     logger.info { "Canvas redrawn" }
                                     it.withSave {
-                                        it.drawImage(bitmap, Offset.Zero, Paint())
+                                        val paint = Paint()
+                                        paint.filterQuality = FilterQuality.None
+                                        it.drawImage(bitmap, Offset.Zero, paint)
                                     }
                                 }
                             }
