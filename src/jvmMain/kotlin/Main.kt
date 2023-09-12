@@ -1,147 +1,202 @@
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.BottomAppBar
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.asComposeImageBitmap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.withSave
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.useResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.FrameWindowScope
+import androidx.compose.ui.window.LocalWindowExceptionHandlerFactory
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowExceptionHandler
+import androidx.compose.ui.window.WindowExceptionHandlerFactory
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import java.awt.FileDialog
-import java.awt.Frame
-import java.io.ByteArrayInputStream
-import java.io.File
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.ImageInfo
+import ru.itmo.graphics.model.ApplicationState
+import ru.itmo.graphics.model.ImageModel
+import ru.itmo.graphics.view.MenuBarView
+import java.awt.Dimension
+import java.lang.Float.min
 import kotlin.system.measureTimeMillis
 
-enum class ImageType {
-    P5, P6
-}
+fun readImage(imageModel: ImageModel): ImageBitmap {
+    val (file, byteArray, imageType) = imageModel
 
-fun isWhitespace(c: Int) : Boolean {
-    return c == 8 || c == 10 || c == 13 || c == 32
-}
-
-fun readWhitespace(fileStream: ByteArrayInputStream) : Int {
-    val c = fileStream.read()
-
-    if (!isWhitespace(c))
-    {
-        throw Exception("Expected whitespace character, encountered: $c")
+    if (!imageType.isSupported) {
+        throw IllegalStateException("Image type not supported for image read function")
     }
 
-    return c
-}
-
-fun readNumber(fileStream: ByteArrayInputStream) : Int {
-    var number = 0
-    var c = fileStream.read()
-    while (c.toChar().minus('0') in 0..9) {
-        number = number * 10 + c.toChar().minus('0')
-        c = fileStream.read()
-    }
-
-    if (!isWhitespace(c))
-    {
-        throw Exception("Expected digit character, encountered: ${c.toChar()} ($c)")
-    }
-
-    return number
-}
-
-fun readPositiveNumber(fileStream: ByteArrayInputStream) : Int {
-    val number = readNumber(fileStream)
-
-    if (number <= 0)
-    {
-        throw Exception("Number must be positive. Got $number")
-    }
-
-    return number
-}
-
-fun readColorValue(fileStream: ByteArrayInputStream, maxValue: Int) : Float {
-    var value = fileStream.read()
-    if (maxValue > 255)
-    {
-        value.shl(8)
-        value += fileStream.read()
-    }
-
-    return value.toFloat() / maxValue
-}
-
-fun openFileDialog(parent : Frame): File {
-    val file = FileDialog(parent, "Select File", FileDialog.LOAD).apply {
-        isMultipleMode = false
-        isVisible = true
-    }.files.first()
-
-    var imageType: ImageType
-    lateinit var pixelMap: FloatArray
+    lateinit var pixelMap: ByteArray
+    val width: Int
+    val height: Int
 
     val timeInMillis = measureTimeMillis {
-
         println(file.absolutePath)
 
-        val byteArray = file.readBytes()
         val fileStream = byteArray.inputStream()
-        val type = fileStream.readNBytes(2)
 
-        imageType = if (type[0].toInt() == 80 && type[1].toInt() == 53) {
-            ImageType.P5
-        } else if (type[0].toInt() == 80 && type[1].toInt() == 54) {
-            ImageType.P6
-        } else {
-            throw Exception("Incorrect type header")
+        val imageDimension = imageType.readHeader(fileStream)
+
+        width = imageDimension.width
+        height = imageDimension.height
+        val totalPixels = width * height
+
+        println("Picture is $width pixels by $height pixels (Total $totalPixels pixels)")
+
+        val totalLen = totalPixels * imageType.colorInfo.bytesPerPixel
+
+        pixelMap = ByteArray(totalLen) { 0 }
+
+        for (i in 0 until totalPixels) {
+            imageType.readPixelInfo(fileStream, i, pixelMap)
         }
 
-        println("Found ${imageType.name} type header")
-
-        readWhitespace(fileStream)
-
-        val width = readPositiveNumber(fileStream)
-        val height = readPositiveNumber(fileStream)
-
-        println("Picture is $width pixels by $height pixels (Total ${width * height} pixels)")
-
-        val maxPixelValue = readPositiveNumber(fileStream)
-
-        if (maxPixelValue > 65536) {
-            throw Exception("MaxValue for pixel can't be more than 65536. Found $maxPixelValue")
-        }
-
-        println("MaxValue for pixel is $maxPixelValue")
-        var totalLen = height * width
-        if (imageType == ImageType.P6) {
-            totalLen *= 3
-        }
-
-        pixelMap = FloatArray(totalLen) { 0f }
-
-        for (i in pixelMap.indices) {
-            pixelMap[i] = readColorValue(fileStream, maxPixelValue)
-        }
-
-        val totalMemory = totalLen.toFloat() * Int.SIZE_BYTES
+        val totalMemory = totalLen.toFloat() * Byte.SIZE_BYTES
         println("Successfully read $totalLen color values. Total memory used: ${totalMemory / 1000 / 1000} Mb")
 
         fileStream.close()
     }
 
     println("Total time used to load: ${timeInMillis.toFloat() / 1000} s")
-    return file
+
+    val bitmap = Bitmap()
+    bitmap.setImageInfo(
+        ImageInfo(
+            imageType.colorInfo,
+            width,
+            height,
+        ),
+    )
+    bitmap.installPixels(pixelMap)
+    imageModel.bitmap = bitmap
+
+    return bitmap.asComposeImageBitmap()
 }
 
-fun main() = application {
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "Compose for Desktop",
-        state = rememberWindowState(width = 480.dp, height = 480.dp)
-    ) {
-        MaterialTheme {
-            Button(onClick = {
-                openFileDialog(this.window)
-            }) {
-                Text("File Picker")
+@OptIn(ExperimentalComposeUiApi::class)
+fun main() {
+    var lastError: Throwable? by mutableStateOf(null)
+
+    application {
+        val applicationState = remember { ApplicationState() }
+        CompositionLocalProvider(
+            LocalWindowExceptionHandlerFactory provides WindowExceptionHandlerFactory { window ->
+                WindowExceptionHandler {
+                    lastError = it
+                    applicationState.rollbackOnError("${it.message}}")
+                }
+            },
+        ) {
+            val logger by lazy {
+                KotlinLogging.logger { }
+            }
+            var lastSuccessfulBitmap: ImageBitmap by remember { mutableStateOf(loadDefaultImage()) }
+            val bitmap by remember(applicationState.image) {
+                mutableStateOf(
+                    runCatching {
+                        applicationState.image?.let {
+                            when (it.type.isSupported) {
+                                true -> readImage(it)
+                                else -> loadImageBitmap(it.data.inputStream())
+                            }
+                        } ?: lastSuccessfulBitmap
+                    }.fold(
+                        onSuccess = {
+                            logger.info { "update lastSuccessfulBitmap" }
+                            logger.info { applicationState.image?.bitmap == null }
+                            lastSuccessfulBitmap = it
+                            applicationState.onAnySuccess()
+                            lastSuccessfulBitmap
+                        },
+                        onFailure = {
+                            logger.info { "use lastSuccessfulBitmap" }
+                            applicationState.rollbackOnError("${it.message}")
+                            lastSuccessfulBitmap
+                        },
+                    ),
+                )
+            }
+            Window(
+                onCloseRequest = ::exitApplication,
+                title = "Nascar95 GUI",
+                state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified),
+            ) {
+                setMinWindowSize()
+                MenuBarView(applicationState)
+
+                Scaffold(
+                    topBar = {
+                        Canvas(
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            val scalingCoefficient = min(size.height / bitmap.height, size.width / bitmap.width)
+                            scale(
+                                scaleX = scalingCoefficient,
+                                scaleY = scalingCoefficient,
+                                pivot = Offset.Zero,
+                            ) {
+                                drawIntoCanvas {
+                                    logger.info { "Canvas redrawn" }
+                                    it.withSave {
+                                        val paint = Paint()
+                                        paint.filterQuality = FilterQuality.None
+                                        it.drawImage(bitmap, Offset.Zero, paint)
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    bottomBar = {
+                        BottomAppBar(
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                textAlign = TextAlign.Left,
+                                text = applicationState.log ?: "",
+                            )
+                        }
+                    },
+                ) {
+                    logger.info { "Scaffold redrawn" }
+                }
             }
         }
     }
+}
+
+private fun loadDefaultImage() = with(KotlinLogging.logger { }) {
+    useResource("sample.png", ::loadImageBitmap)
+        .also { info { "used default file" } }
+}
+
+@Composable
+fun Dp.dpRoundToPx() = with(LocalDensity.current) { this@dpRoundToPx.roundToPx() }
+
+@Composable
+private fun FrameWindowScope.setMinWindowSize() {
+    window.minimumSize = Dimension(100.dp.dpRoundToPx(), 100.dp.dpRoundToPx())
 }
