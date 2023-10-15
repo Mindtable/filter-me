@@ -1,4 +1,4 @@
-package ru.itmo.graphics.view
+package ru.itmo.graphics.viewmodel.presentation.view
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.key.Key
@@ -6,12 +6,13 @@ import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import ru.itmo.graphics.model.Actions
-import ru.itmo.graphics.model.ApplicationState
-import ru.itmo.graphics.utils.chooseFileDialog
-import java.awt.FileDialog
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.OpenFileEvent
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.SaveEvent
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.StartSaveAsEvent
 
 @Composable
-fun FrameWindowScope.MenuBarView(applicationState: ApplicationState) {
+fun FrameWindowScope.MenuBarView(onEvent: (ImageEvent) -> Unit) {
     MenuBar {
         Menu(
             text = "File",
@@ -19,21 +20,17 @@ fun FrameWindowScope.MenuBarView(applicationState: ApplicationState) {
         ) {
             Item(
                 Actions.OPEN.toString(),
-                onClick = {
-                    applicationState.onOpenFileClick(chooseFileDialog(window, FileDialog.LOAD).absolutePath)
-                },
+                onClick = { onEvent(OpenFileEvent) },
                 shortcut = KeyShortcut(Key.O, ctrl = true),
             )
             Item(
                 Actions.SAVE.toString(),
-                onClick = applicationState::onSaveButtonClick,
+                onClick = { onEvent(SaveEvent) },
                 shortcut = KeyShortcut(Key.S, ctrl = true),
             )
             Item(
                 Actions.SAVEAS.toString(),
-                onClick = {
-                    applicationState.onSavedAsButtonClick(chooseFileDialog(window, FileDialog.SAVE).absolutePath)
-                },
+                onClick = { onEvent(StartSaveAsEvent) },
                 shortcut = KeyShortcut(Key.S, ctrl = true, shift = true),
             )
         }
