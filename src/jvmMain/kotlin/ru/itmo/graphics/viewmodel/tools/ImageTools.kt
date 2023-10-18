@@ -3,9 +3,9 @@ package ru.itmo.graphics.viewmodel.tools
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType.OPAQUE
 import org.jetbrains.skia.ColorInfo
-import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType.RGB_888X
 import org.jetbrains.skia.ImageInfo
+import ru.itmo.graphics.image.colorspace.ColorSpace
 import ru.itmo.graphics.model.ImageModel
 import ru.itmo.graphics.viewmodel.domain.Pixel
 import ru.itmo.graphics.viewmodel.domain.PixelData
@@ -115,12 +115,16 @@ fun readImageV2(
 }
 
 fun PixelData.toBitmap(
+    colorSpace: ColorSpace,
     showChannelOne: Boolean,
     showChannelTwo: Boolean,
     showChannelThree: Boolean,
 ): Bitmap {
     val pixelMap2 = this.data
         .flatten()
+        .map {
+            pixel -> colorSpace.toRgb(pixel)
+        }
         .flatMap {
             val (channelOne, channelTwo, channelThree) = it
             val transform = { x: Float -> (x * 255).toInt().toByte() }
@@ -138,7 +142,7 @@ fun PixelData.toBitmap(
     val bitmap = Bitmap()
     bitmap.setImageInfo(
         ImageInfo(
-            ColorInfo(RGB_888X, OPAQUE, ColorSpace.sRGB),
+            ColorInfo(RGB_888X, OPAQUE, org.jetbrains.skia.ColorSpace.sRGB),
             width,
             height,
         ),
@@ -146,4 +150,15 @@ fun PixelData.toBitmap(
     bitmap.installPixels(pixelMap2)
 
     return bitmap
+}
+
+fun PixelData.convertColorSpace(
+    oldColorSpace: ColorSpace,
+    newColorSpace: ColorSpace
+) {
+    for (row in this.data.indices) {
+        for (column in this.data[row].indices) {
+            data[row][column] = newColorSpace.fromRgb(oldColorSpace.toRgb(data[row][column]))
+        }
+    }
 }
