@@ -12,6 +12,7 @@ class SkiaSupportedTypeResolver : TypeResolver {
         "HEIF",
         "ICO",
         "JPEG",
+        "JPG",
         "PNG",
         "WBMP",
         "WebP",

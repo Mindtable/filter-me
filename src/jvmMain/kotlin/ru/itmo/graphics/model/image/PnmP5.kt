@@ -5,6 +5,7 @@ import org.jetbrains.skia.ColorInfo
 import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType
 import ru.itmo.graphics.tools.HalfFloatUtils
+import ru.itmo.graphics.viewmodel.domain.Pixel
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -20,11 +21,12 @@ class PnmP5 : Pnm() {
             }
         }
 
-    override fun readPixelInfo(inputStream: InputStream, pixelIndex: Int, byteArray: ByteArray) {
+    override fun readPixelInfo(inputStream: InputStream, pixelIndex: Int, byteArray: ByteArray): Pixel {
+        val normalized = normaliseDataBlock(inputStream)
         if (maxPixelValue < 256) {
-            byteArray[pixelIndex] = (normaliseDataBlock(inputStream) * 255).toInt().toByte()
+            byteArray[pixelIndex] = (normalized * 255).toInt().toByte()
         } else {
-            val color = HalfFloatUtils.toHalfFloat(normaliseDataBlock(inputStream))
+            val color = HalfFloatUtils.toHalfFloat(normalized)
 
             for (i in pixelIndex * 8 until pixelIndex * 8 + 6 step 2) {
                 byteArray[i] = color.toByte()
@@ -35,6 +37,8 @@ class PnmP5 : Pnm() {
             byteArray[pixelIndex * 8 + 6] = alphaValue.toByte()
             byteArray[pixelIndex * 8 + 7] = alphaValue.shr(8).toByte()
         }
+
+        return Pixel(normalized, normalized, normalized)
     }
 
     override fun writePixelInfo(outputStream: OutputStream, pixelIndex: Int, byteArray: ByteArray) {

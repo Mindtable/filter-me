@@ -14,10 +14,15 @@ import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
 import ru.itmo.graphics.image.type.FileTypeResolver
 import ru.itmo.graphics.model.ImageModel
+import ru.itmo.graphics.viewmodel.domain.PixelData
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.ALL
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.CHANNEL_ONE
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.CHANNEL_THREE
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.CHANNEL_TWO
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.NONE
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.OPEN
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.SAVE
-import ru.itmo.graphics.viewmodel.tools.readImage
+import ru.itmo.graphics.viewmodel.tools.readImageV2
 import java.io.File
 
 private val logger = KotlinLogging.logger { }
@@ -43,6 +48,65 @@ class ImageViewModel(
                         it.copy(
                             log = "Image saved as ${event.path}!",
                         )
+                    }
+                }
+            }
+
+            is ChannelSettingsChanged -> {
+                when (event.channel) {
+                    CHANNEL_ONE -> {
+                        state.update {
+                            it.copy(
+                                showChannels = it.showChannels
+                                    .mapValues { (key: Channel, value: Boolean) ->
+                                        if (key == CHANNEL_ONE) {
+                                            !value
+                                        } else {
+                                            value
+                                        }
+                                    },
+                            )
+                        }
+                    }
+
+                    CHANNEL_THREE -> {
+                        state.update {
+                            it.copy(
+                                showChannels = it.showChannels
+                                    .mapValues { (key: Channel, value: Boolean) ->
+                                        if (key == CHANNEL_THREE) {
+                                            !value
+                                        } else {
+                                            value
+                                        }
+                                    },
+                            )
+                        }
+                    }
+
+                    CHANNEL_TWO -> {
+                        state.update {
+                            it.copy(
+                                showChannels = it.showChannels
+                                    .mapValues { (key: Channel, value: Boolean) ->
+                                        if (key == CHANNEL_TWO) {
+                                            !value
+                                        } else {
+                                            value
+                                        }
+                                    },
+                            )
+                        }
+                    }
+
+                    ALL -> {
+                        state.update {
+                            val isAllActive = it.showChannels.values.all { value -> value }
+                            it.copy(
+                                showChannels = it.showChannels
+                                    .mapValues { !isAllActive },
+                            )
+                        }
                     }
                 }
             }
@@ -123,7 +187,7 @@ class ImageViewModel(
                     )
                     val bitmap = when {
                         type.isSupported -> {
-                            readImage(
+                            readImageV2(
                                 imageModel,
                             )
                         }
@@ -141,14 +205,27 @@ class ImageViewModel(
                     }
 
                     state.update {
-                        it.copy(
-                            log = "${event.absolutePath} opened",
-                            file = event.absolutePath,
-                            isError = false,
-                            openFileDialog = NONE,
-                            bitmap = bitmap,
-                            imageModel = imageModel,
-                        )
+                        when (bitmap) {
+                            is PixelData -> it.copy(
+                                log = "${event.absolutePath} opened",
+                                file = event.absolutePath,
+                                isError = false,
+                                openFileDialog = NONE,
+                                pixelData = bitmap,
+                                imageModel = imageModel,
+                            )
+
+                            is Bitmap -> it.copy(
+                                log = "${event.absolutePath} opened",
+                                file = event.absolutePath,
+                                isError = false,
+                                openFileDialog = NONE,
+                                bitmap = bitmap,
+                                imageModel = imageModel,
+                            )
+
+                            else -> throw IllegalStateException("Unsupported type!")
+                        }
                     }
                 }
             }

@@ -12,7 +12,6 @@ abstract class Pnm : ImageType {
     protected var maxPixelValue: Int = 0
     abstract val pnmType: ByteArray
 
-
     protected fun normaliseDataBlock(inputStream: InputStream): Float {
         var value = inputStream.read()
 
@@ -21,7 +20,7 @@ abstract class Pnm : ImageType {
             value += inputStream.read()
         }
 
-        value = value.coerceIn(0 .. maxPixelValue)
+        value = value.coerceIn(0..maxPixelValue)
 
         return value.toFloat() / maxPixelValue
     }

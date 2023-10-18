@@ -6,13 +6,19 @@ import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import ru.itmo.graphics.model.Actions
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.ALL
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.ChannelSettingsChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.OpenFileEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.SaveEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.StartSaveAsEvent
 
 @Composable
-fun FrameWindowScope.MenuBarView(onEvent: (ImageEvent) -> Unit) {
+fun FrameWindowScope.MenuBarView(
+    showChannels: Map<Channel, Boolean>,
+    onEvent: (ImageEvent) -> Unit,
+) {
     MenuBar {
         Menu(
             text = "File",
@@ -32,6 +38,24 @@ fun FrameWindowScope.MenuBarView(onEvent: (ImageEvent) -> Unit) {
                 Actions.SAVEAS.toString(),
                 onClick = { onEvent(StartSaveAsEvent) },
                 shortcut = KeyShortcut(Key.S, ctrl = true, shift = true),
+            )
+        }
+        Menu(
+            text = "Channels",
+            mnemonic = 'F',
+        ) {
+            showChannels.entries.forEach { (channel, isActive) ->
+                CheckboxItem(
+                    channel.text,
+                    onCheckedChange = { onEvent(ChannelSettingsChanged(channel)) },
+                    checked = isActive,
+                )
+            }
+
+            CheckboxItem(
+                ALL.text,
+                onCheckedChange = { onEvent(ChannelSettingsChanged(ALL)) },
+                checked = showChannels.values.all { value -> value },
             )
         }
     }

@@ -71,12 +71,12 @@ fun MainWindowView(
             }
         }
 
-        state.openFileDialog.isOpen() -> {
-            scope.openFileDialog(window, state.openFileDialog, onEvent)
-            onEvent(OpeningFileEvent)
-        }
-
         else -> {
+            if (state.openFileDialog.isOpen()) {
+                scope.openFileDialog(window, state.openFileDialog, onEvent)
+                onEvent(OpeningFileEvent)
+            }
+
             Scaffold(
                 topBar = {
                     Canvas(
