@@ -12,6 +12,7 @@ import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.ColorAlphaType.PREMUL
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
+import ru.itmo.graphics.image.colorspace.RgbColorSpace
 import ru.itmo.graphics.image.type.FileTypeResolver
 import ru.itmo.graphics.model.ImageModel
 import ru.itmo.graphics.viewmodel.domain.PixelData
@@ -205,7 +206,7 @@ class ImageViewModel(
                         type.isSupported -> {
                             readImageV2(
                                 imageModel,
-                            )
+                            ).convertColorSpace(RgbColorSpace, state.value.colorSpace)
                         }
 
                         else -> {

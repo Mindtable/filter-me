@@ -8,7 +8,12 @@ import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.MenuScope
 import ru.itmo.graphics.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.image.colorspace.CmyColorSpace
+import ru.itmo.graphics.image.colorspace.HslColorSpace
+import ru.itmo.graphics.image.colorspace.HsvColorSpace
 import ru.itmo.graphics.image.colorspace.RgbColorSpace
+import ru.itmo.graphics.image.colorspace.YCbCr601ColorSpace
+import ru.itmo.graphics.image.colorspace.YCbCr709ColorSpace
+import ru.itmo.graphics.image.colorspace.YCoCgColorSpace
 import ru.itmo.graphics.model.Actions
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ApplicationColorSpaceChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
@@ -72,6 +77,11 @@ fun FrameWindowScope.MenuBarView(
         ) {
             ColorSpaceCheckbox(RgbColorSpace, activeColorSpace, onEvent)
             ColorSpaceCheckbox(CmyColorSpace, activeColorSpace, onEvent)
+            ColorSpaceCheckbox(HslColorSpace, activeColorSpace, onEvent)
+            ColorSpaceCheckbox(HsvColorSpace, activeColorSpace, onEvent)
+            ColorSpaceCheckbox(YCoCgColorSpace, activeColorSpace, onEvent)
+            ColorSpaceCheckbox(YCbCr601ColorSpace, activeColorSpace, onEvent)
+            ColorSpaceCheckbox(YCbCr709ColorSpace, activeColorSpace, onEvent)
         }
     }
 }
