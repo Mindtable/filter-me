@@ -14,7 +14,7 @@ data class ImageState(
     val openFileDialog: FileDialogType = NONE,
     val bitmap: Bitmap? = null,
     val imageModel: ImageModel? = null,
-    val colorSpace: ApplicationColorSpace = RgbColorSpace(),
+    val colorSpace: ApplicationColorSpace = RgbColorSpace,
     val pixelData: PixelData? = null,
     val showChannels: Map<Channel, Boolean> = mapOf(
         Channel.CHANNEL_ONE to true,

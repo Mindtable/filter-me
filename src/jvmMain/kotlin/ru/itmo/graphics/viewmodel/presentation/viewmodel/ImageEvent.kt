@@ -1,5 +1,7 @@
 package ru.itmo.graphics.viewmodel.presentation.viewmodel
 
+import ru.itmo.graphics.image.colorspace.ApplicationColorSpace
+
 sealed interface ImageEvent
 
 object OpenFileEvent : ImageEvent
@@ -14,4 +16,4 @@ object ImageErrorDismissed : ImageEvent
 
 data class ChannelSettingsChanged(val channel: Channel) : ImageEvent
 
-object ApplicationColorSpaceChanged : ImageEvent
+data class ApplicationColorSpaceChanged(val colorSpace: ApplicationColorSpace) : ImageEvent

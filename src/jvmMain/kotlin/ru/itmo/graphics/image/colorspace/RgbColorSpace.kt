@@ -2,7 +2,10 @@ package ru.itmo.graphics.image.colorspace
 
 import ru.itmo.graphics.viewmodel.domain.Pixel
 
-class RgbColorSpace : ApplicationColorSpace {
+object RgbColorSpace : ApplicationColorSpace {
+
+    override val name: String = "RGB"
+
     override fun fromRgb(pixel: Pixel): Pixel {
         return pixel
     }

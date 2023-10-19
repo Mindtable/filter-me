@@ -5,6 +5,10 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
+import androidx.compose.ui.window.MenuScope
+import ru.itmo.graphics.image.colorspace.ApplicationColorSpace
+import ru.itmo.graphics.image.colorspace.CmyColorSpace
+import ru.itmo.graphics.image.colorspace.RgbColorSpace
 import ru.itmo.graphics.model.Actions
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ApplicationColorSpaceChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
@@ -17,6 +21,7 @@ import ru.itmo.graphics.viewmodel.presentation.viewmodel.StartSaveAsEvent
 
 @Composable
 fun FrameWindowScope.MenuBarView(
+    activeColorSpace: ApplicationColorSpace,
     showChannels: Map<Channel, Boolean>,
     onEvent: (ImageEvent) -> Unit,
 ) {
@@ -65,10 +70,21 @@ fun FrameWindowScope.MenuBarView(
             text = "Colorspaces",
             mnemonic = 'F',
         ) {
-            Item(
-                "Switch colorspace",
-                onClick = { onEvent(ApplicationColorSpaceChanged) },
-            )
+            ColorSpaceCheckbox(RgbColorSpace, activeColorSpace, onEvent)
+            ColorSpaceCheckbox(CmyColorSpace, activeColorSpace, onEvent)
         }
     }
+}
+
+@Composable
+fun MenuScope.ColorSpaceCheckbox(
+    colorSpaceToShow: ApplicationColorSpace,
+    activeColorSpace: ApplicationColorSpace,
+    onEvent: (ImageEvent) -> Unit,
+) {
+    CheckboxItem(
+        colorSpaceToShow.name,
+        onCheckedChange = { onEvent(ApplicationColorSpaceChanged(colorSpaceToShow)) },
+        checked = colorSpaceToShow == activeColorSpace,
+    )
 }

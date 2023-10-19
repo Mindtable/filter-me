@@ -2,7 +2,10 @@ package ru.itmo.graphics.image.colorspace
 
 import ru.itmo.graphics.viewmodel.domain.Pixel
 
-class CmyColorSpace : ApplicationColorSpace {
+object CmyColorSpace : ApplicationColorSpace {
+
+    override val name: String = "CMY"
+
     override fun toRgb(pixel: Pixel): Pixel {
         val red = 1.0f - pixel.channelOne
         val green = 1.0f - pixel.channelTwo

@@ -71,7 +71,7 @@ fun main() {
             }
 
             setMinWindowSize()
-            MenuBarView(state.showChannels, viewModel::onEvent)
+            MenuBarView(state.colorSpace, state.showChannels, viewModel::onEvent)
             MaterialTheme {
                 MainWindowView(
                     window,

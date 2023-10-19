@@ -12,8 +12,6 @@ import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.ColorAlphaType.PREMUL
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
-import ru.itmo.graphics.image.colorspace.CmyColorSpace
-import ru.itmo.graphics.image.colorspace.RgbColorSpace
 import ru.itmo.graphics.image.type.FileTypeResolver
 import ru.itmo.graphics.model.ImageModel
 import ru.itmo.graphics.viewmodel.domain.PixelData
@@ -131,20 +129,17 @@ class ImageViewModel(
                 }
             }
 
-            ApplicationColorSpaceChanged -> {
+            is ApplicationColorSpaceChanged -> {
                 scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
-                    val colorspace = if (state.value.colorSpace is RgbColorSpace) {
-                        CmyColorSpace()
-                    } else {
-                        RgbColorSpace()
-                    }
-
-                    state.update {
-                        it.copy(
-                            log = "Colorspace changed to $colorspace",
-                            pixelData = it.pixelData?.convertColorSpace(state.value.colorSpace, colorspace),
-                            colorSpace = colorspace,
-                        )
+                    val newColorSpace = event.colorSpace
+                    if (state.value.colorSpace != newColorSpace) {
+                        state.update {
+                            it.copy(
+                                log = "Colorspace changed to ${newColorSpace.name}",
+                                pixelData = it.pixelData?.convertColorSpace(state.value.colorSpace, newColorSpace),
+                                colorSpace = newColorSpace,
+                            )
+                        }
                     }
                 }
             }
