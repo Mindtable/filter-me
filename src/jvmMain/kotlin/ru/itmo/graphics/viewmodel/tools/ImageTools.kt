@@ -121,31 +121,27 @@ fun PixelData.toBitmap(
     showChannelTwo: Boolean,
     showChannelThree: Boolean,
 ): Bitmap {
-    val pixelMap2 = this.data
-        .flatten()
-        .map {
-                pixel ->
-            colorSpace.toRgb(
+    val byteArray = ByteArray(pixelCount * 4)
+
+    val transform = { x: Float -> (x * 255).toInt().toByte() }
+
+    for (i in 0 ..< height) {
+        for (j in 0 ..< width) {
+            val pixel = data[i][j]
+            val (channelOne, channelTwo, channelThree) = colorSpace.toRgb(
                 Pixel(
                     if (showChannelOne) pixel.channelOne else 0f,
                     if (showChannelTwo) pixel.channelTwo else 0f,
                     if (showChannelThree) pixel.channelThree else 0f,
                 ),
             )
-        }
-        .flatMap {
-            val (channelOne, channelTwo, channelThree) = it
-            val transform = { x: Float -> (x * 255).toInt().toByte() }
 
-            listOf(
-                channelOne,
-                channelTwo,
-                channelThree,
-                1.0f,
-            ).map(transform)
+            byteArray[(i * width + j) * 4 + 0] = transform(channelOne)
+            byteArray[(i * width + j) * 4 + 1] = transform(channelTwo)
+            byteArray[(i * width + j) * 4 + 2] = transform(channelThree)
+            byteArray[(i * width + j) * 4 + 3] = transform(1.0f)
         }
-        .toTypedArray()
-        .toByteArray()
+    }
 
     val bitmap = Bitmap()
     bitmap.setImageInfo(
@@ -155,7 +151,7 @@ fun PixelData.toBitmap(
             height,
         ),
     )
-    bitmap.installPixels(pixelMap2)
+    bitmap.installPixels(byteArray)
 
     return bitmap
 }

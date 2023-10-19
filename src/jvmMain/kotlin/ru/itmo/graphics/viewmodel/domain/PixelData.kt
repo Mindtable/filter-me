@@ -8,6 +8,9 @@ class PixelData(
 
     val width: Int
         get() = data.firstOrNull()?.size ?: 0
+
+    val pixelCount: Int
+        get() = height * width
 }
 
 data class Pixel(
