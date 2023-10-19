@@ -6,6 +6,7 @@ import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.MenuBar
 import ru.itmo.graphics.model.Actions
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.ApplicationColorSpaceChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.ALL
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ChannelSettingsChanged
@@ -44,18 +45,29 @@ fun FrameWindowScope.MenuBarView(
             text = "Channels",
             mnemonic = 'F',
         ) {
+            val allActive = showChannels.values.all { value -> value }
+
             showChannels.entries.forEach { (channel, isActive) ->
                 CheckboxItem(
                     channel.text,
                     onCheckedChange = { onEvent(ChannelSettingsChanged(channel)) },
-                    checked = isActive,
+                    checked = !allActive && isActive,
                 )
             }
 
             CheckboxItem(
                 ALL.text,
                 onCheckedChange = { onEvent(ChannelSettingsChanged(ALL)) },
-                checked = showChannels.values.all { value -> value },
+                checked = allActive,
+            )
+        }
+        Menu(
+            text = "Colorspaces",
+            mnemonic = 'F',
+        ) {
+            Item(
+                "Switch colorspace",
+                onClick = { onEvent(ApplicationColorSpaceChanged) },
             )
         }
     }

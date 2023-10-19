@@ -12,6 +12,8 @@ import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.ColorAlphaType.PREMUL
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
+import ru.itmo.graphics.image.colorspace.CmyColorSpace
+import ru.itmo.graphics.image.colorspace.RgbColorSpace
 import ru.itmo.graphics.image.type.FileTypeResolver
 import ru.itmo.graphics.model.ImageModel
 import ru.itmo.graphics.viewmodel.domain.PixelData
@@ -22,6 +24,7 @@ import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.CHANNEL_TWO
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.NONE
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.OPEN
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.SAVE
+import ru.itmo.graphics.viewmodel.tools.convertColorSpace
 import ru.itmo.graphics.viewmodel.tools.readImageV2
 import java.io.File
 
@@ -123,6 +126,24 @@ class ImageViewModel(
                     state.update {
                         it.copy(
                             log = "Image saved!",
+                        )
+                    }
+                }
+            }
+
+            ApplicationColorSpaceChanged -> {
+                scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                    val colorspace = if (state.value.colorSpace is RgbColorSpace) {
+                        CmyColorSpace()
+                    } else {
+                        RgbColorSpace()
+                    }
+
+                    state.update {
+                        it.copy(
+                            log = "Colorspace changed to $colorspace",
+                            pixelData = it.pixelData?.convertColorSpace(state.value.colorSpace, colorspace),
+                            colorSpace = colorspace,
                         )
                     }
                 }

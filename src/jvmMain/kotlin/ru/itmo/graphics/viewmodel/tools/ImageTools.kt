@@ -124,11 +124,14 @@ fun PixelData.toBitmap(
     val pixelMap2 = this.data
         .flatten()
         .map {
-            pixel -> colorSpace.toRgb(Pixel(
-                if (showChannelOne) pixel.channelOne else 0f,
-                if (showChannelTwo) pixel.channelTwo else 0f,
-                if (showChannelThree) pixel.channelThree else 0f
-            ))
+                pixel ->
+            colorSpace.toRgb(
+                Pixel(
+                    if (showChannelOne) pixel.channelOne else 0f,
+                    if (showChannelTwo) pixel.channelTwo else 0f,
+                    if (showChannelThree) pixel.channelThree else 0f,
+                ),
+            )
         }
         .flatMap {
             val (channelOne, channelTwo, channelThree) = it
@@ -159,11 +162,13 @@ fun PixelData.toBitmap(
 
 fun PixelData.convertColorSpace(
     oldColorSpace: ApplicationColorSpace,
-    newColorSpace: ApplicationColorSpace
-) {
+    newColorSpace: ApplicationColorSpace,
+): PixelData {
     for (row in this.data.indices) {
         for (column in this.data[row].indices) {
             data[row][column] = newColorSpace.fromRgb(oldColorSpace.toRgb(data[row][column]))
         }
     }
+
+    return this
 }

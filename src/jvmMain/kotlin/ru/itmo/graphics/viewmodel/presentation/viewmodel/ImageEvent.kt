@@ -13,3 +13,5 @@ data class ImageError(val error: Throwable) : ImageEvent
 object ImageErrorDismissed : ImageEvent
 
 data class ChannelSettingsChanged(val channel: Channel) : ImageEvent
+
+object ApplicationColorSpaceChanged : ImageEvent

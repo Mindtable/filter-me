@@ -54,6 +54,7 @@ fun main() {
                 state.showChannels[CHANNEL_ONE] ?: true,
                 state.showChannels[CHANNEL_TWO] ?: true,
                 state.showChannels[CHANNEL_THREE] ?: true,
+                state.colorSpace,
             ) {
                 mutableStateOf(
                     state.pixelData?.toBitmap(
