@@ -124,16 +124,20 @@ fun PixelData.toBitmap(
     val pixelMap2 = this.data
         .flatten()
         .map {
-            pixel -> colorSpace.toRgb(pixel)
+            pixel -> colorSpace.toRgb(Pixel(
+                if (showChannelOne) pixel.channelOne else 0f,
+                if (showChannelTwo) pixel.channelTwo else 0f,
+                if (showChannelThree) pixel.channelThree else 0f
+            ))
         }
         .flatMap {
             val (channelOne, channelTwo, channelThree) = it
             val transform = { x: Float -> (x * 255).toInt().toByte() }
 
             listOf(
-                if (showChannelOne) channelOne else 0f,
-                if (showChannelTwo) channelTwo else 0f,
-                if (showChannelThree) channelThree else 0f,
+                channelOne,
+                channelTwo,
+                channelThree,
                 1.0f,
             ).map(transform)
         }
