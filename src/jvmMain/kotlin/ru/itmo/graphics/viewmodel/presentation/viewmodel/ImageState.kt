@@ -1,7 +1,7 @@
 package ru.itmo.graphics.viewmodel.presentation.viewmodel
 
 import org.jetbrains.skia.Bitmap
-import ru.itmo.graphics.image.colorspace.ColorSpace
+import ru.itmo.graphics.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.image.colorspace.RgbColorSpace
 import ru.itmo.graphics.model.ImageModel
 import ru.itmo.graphics.viewmodel.domain.PixelData
@@ -14,7 +14,7 @@ data class ImageState(
     val openFileDialog: FileDialogType = NONE,
     val bitmap: Bitmap? = null,
     val imageModel: ImageModel? = null,
-    val colorSpace: ColorSpace = RgbColorSpace(),
+    val colorSpace: ApplicationColorSpace = RgbColorSpace(),
     val pixelData: PixelData? = null,
     val showChannels: Map<Channel, Boolean> = mapOf(
         Channel.CHANNEL_ONE to true,

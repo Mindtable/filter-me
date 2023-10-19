@@ -3,9 +3,10 @@ package ru.itmo.graphics.viewmodel.tools
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorAlphaType.OPAQUE
 import org.jetbrains.skia.ColorInfo
+import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType.RGB_888X
 import org.jetbrains.skia.ImageInfo
-import ru.itmo.graphics.image.colorspace.ColorSpace
+import ru.itmo.graphics.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.model.ImageModel
 import ru.itmo.graphics.viewmodel.domain.Pixel
 import ru.itmo.graphics.viewmodel.domain.PixelData
@@ -115,7 +116,7 @@ fun readImageV2(
 }
 
 fun PixelData.toBitmap(
-    colorSpace: ColorSpace,
+    colorSpace: ApplicationColorSpace,
     showChannelOne: Boolean,
     showChannelTwo: Boolean,
     showChannelThree: Boolean,
@@ -142,7 +143,7 @@ fun PixelData.toBitmap(
     val bitmap = Bitmap()
     bitmap.setImageInfo(
         ImageInfo(
-            ColorInfo(RGB_888X, OPAQUE, org.jetbrains.skia.ColorSpace.sRGB),
+            ColorInfo(RGB_888X, OPAQUE, ColorSpace.sRGB),
             width,
             height,
         ),
@@ -153,8 +154,8 @@ fun PixelData.toBitmap(
 }
 
 fun PixelData.convertColorSpace(
-    oldColorSpace: ColorSpace,
-    newColorSpace: ColorSpace
+    oldColorSpace: ApplicationColorSpace,
+    newColorSpace: ApplicationColorSpace
 ) {
     for (row in this.data.indices) {
         for (column in this.data[row].indices) {
