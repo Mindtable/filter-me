@@ -66,7 +66,7 @@ fun PixelData.toBitmap(
     colorSpace: ApplicationColorSpace,
     channel: Channel,
     isMonochromeMode: Boolean,
-    gamma: Float = 0f,
+    gamma: Float,
 ): Bitmap {
     val byteArray = ByteArray(pixelCount * 4)
 
@@ -137,11 +137,33 @@ fun PixelData.convertColorSpace(
 ): PixelData {
     var pixel: MutableList<Float>
 
-    for (row in 0..< this.width) {
-        for (column in 0..< this.height) {
-            pixel = getPixel(row, column)
+    for (i in 0 ..< height) {
+        for (j in 0 ..< width) {
+            pixel = getPixel(i, j)
             oldColorSpace.toRgb(pixel)
             newColorSpace.fromRgb(pixel)
+        }
+    }
+
+    return this
+}
+
+fun PixelData.convertGamma(
+    oldGamma: Float,
+    newGamma: Float,
+): PixelData {
+    var pixel: MutableList<Float>
+
+    for (i in 0 ..< height) {
+        for (j in 0 ..< width) {
+            pixel = getPixel(i, j)
+            GammaConversion.applyGamma(pixel, oldGamma)
+            if (newGamma == 0f)
+            {
+                GammaConversion.applyGamma(pixel, 1 / 2.4f)
+            } else {
+                GammaConversion.applyGamma(pixel, 1 / newGamma)
+            }
         }
     }
 

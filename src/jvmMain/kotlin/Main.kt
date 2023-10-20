@@ -51,12 +51,15 @@ fun main() {
                 state.colorSpace,
                 state.channel,
                 state.isMonochromeMode,
+                state.gamma,
+                state.imageVersion,
             ) {
                 mutableStateOf(
                     state.pixelData?.toBitmap(
                         state.colorSpace,
                         state.channel,
                         state.isMonochromeMode,
+                        state.gamma,
                     )?.asComposeImageBitmap(),
                 )
             }
