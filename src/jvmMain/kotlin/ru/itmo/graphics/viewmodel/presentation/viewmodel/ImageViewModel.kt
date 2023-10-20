@@ -20,9 +20,11 @@ import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.NONE
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.OPEN
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.SAVE
 import ru.itmo.graphics.viewmodel.tools.convertColorSpace
+import ru.itmo.graphics.viewmodel.tools.convertGamma
 import ru.itmo.graphics.viewmodel.tools.readImageV2
 import ru.itmo.graphics.viewmodel.tools.toBitmap
 import java.io.File
+import kotlin.math.max
 
 private val logger = KotlinLogging.logger { }
 
@@ -43,6 +45,7 @@ class ImageViewModel(
                     state.value.colorSpace,
                     state.value.channel,
                     true,
+                    state.value.gamma,
                 )
 
                 scope.launch {
@@ -86,6 +89,7 @@ class ImageViewModel(
                     state.value.colorSpace,
                     state.value.channel,
                     true,
+                    state.value.gamma,
                 )
 
                 scope.launch {
@@ -114,6 +118,47 @@ class ImageViewModel(
                                 colorSpace = newColorSpace,
                             )
                         }
+                    }
+                }
+            }
+
+            is ConvertGamma -> {
+                scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                    if (event.newGamma < 0f || event.newGamma > 10f) {
+                        throw IllegalStateException("Gamma need to be in [0, 10]!")
+                    }
+                    val newGamma: Float = if (event.newGamma != 0f) {
+                        max(event.newGamma, 0.1f)
+                    } else {
+                        0f
+                    }
+                    state.update {
+                        it.copy(
+                            log = "Image gamma converted to $newGamma",
+                            pixelData = it.pixelData?.convertGamma(state.value.gamma, newGamma),
+                            gamma = newGamma,
+                            imageVersion = it.imageVersion + 1,
+                        )
+                    }
+                }
+            }
+
+            is AssignGamma -> {
+                scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                    if (event.newGamma < 0f || event.newGamma > 10f) {
+                        throw IllegalStateException("Gamma need to be in [0, 10]!")
+                    }
+                    val newGamma: Float = if (event.newGamma != 0f) {
+                        max(event.newGamma, 0.1f)
+                    } else {
+                        0f
+                    }
+                    state.update {
+                        it.copy(
+                            log = "Image gamma assigned to $newGamma",
+                            gamma = newGamma,
+                            imageVersion = it.imageVersion + 1,
+                        )
                     }
                 }
             }
@@ -177,10 +222,7 @@ class ImageViewModel(
                     )
                     val bitmap = when {
                         type.isSupported -> {
-                            readImageV2(
-                                imageModel,
-                            )
-                            // .convertColorSpace(RgbColorSpace, state.value.colorSpace)
+                            readImageV2(imageModel)
                         }
 
                         else -> {

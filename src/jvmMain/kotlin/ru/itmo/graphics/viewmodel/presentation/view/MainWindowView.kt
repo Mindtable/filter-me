@@ -3,17 +3,24 @@ package ru.itmo.graphics.viewmodel.presentation.view
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Button
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.geometry.Offset
@@ -31,6 +38,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import ru.itmo.graphics.utils.chooseFileDialog
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.AssignGamma
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.ConvertGamma
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.NONE
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.OPEN
@@ -80,7 +89,8 @@ fun MainWindowView(
             Scaffold(
                 topBar = {
                     Canvas(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxWidth()
+                            .fillMaxHeight(0.75f),
                     ) {
                         image?.let {
                             val scalingCoefficient = min(size.height / image.height, size.width / image.width)
@@ -103,12 +113,54 @@ fun MainWindowView(
                 },
                 bottomBar = {
                     BottomAppBar(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
+                            .fillMaxHeight(0.15f)
+                            .padding(0.2.dp),
                     ) {
-                        Text(
-                            textAlign = TextAlign.Left,
-                            text = state.log,
-                        )
+                        Row {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.2f),
+                            ) {
+                                Text(
+                                    textAlign = TextAlign.Left,
+                                    text = state.log,
+                                    modifier = Modifier.padding(0.3.dp),
+                                )
+                            }
+                            Column(modifier = Modifier.fillMaxWidth(0.5f)) {
+                                var textToInput by remember { mutableStateOf("") }
+                                Row {
+                                    Text(
+                                        text = "Assigned gamma is ${state.gamma}",
+                                    )
+                                }
+                                Row {
+                                    TextField(
+                                        value = textToInput,
+                                        onValueChange = { textToInput = it },
+                                    )
+                                }
+                                Row {
+                                    Button(onClick = {
+                                        textToInput.toFloatOrNull()?.let {
+                                            onEvent(AssignGamma(it))
+                                            textToInput = ""
+                                        }
+                                    }) {
+                                        Text("Assign")
+                                    }
+                                    Button(onClick = {
+                                        textToInput.toFloatOrNull()?.let {
+                                            onEvent(ConvertGamma(it))
+                                            textToInput = ""
+                                        }
+                                    }) {
+                                        Text("Convert")
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
             ) {

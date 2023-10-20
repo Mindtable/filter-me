@@ -18,4 +18,7 @@ data class ImageState(
     val colorSpace: ApplicationColorSpace = RgbColorSpace,
     val pixelData: PixelData? = null,
     val channel: Channel = Channel.ALL,
+    val gamma: Float = 0f,
+
+    val imageVersion: Long = 0,
 )
