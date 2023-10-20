@@ -1,5 +1,9 @@
 package ru.itmo.graphics.viewmodel.domain
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val log = KotlinLogging.logger { }
+
 class PixelData(
     val data: MutableList<Float>,
     val height: Int,
@@ -9,7 +13,12 @@ class PixelData(
         get() = height * width
 
     fun getPixel(row: Int, column: Int): MutableList<Float> {
-        return data.subList(row * width * 3 + column * 3, row * width * 3 + column * 3 + 3)
+        return runCatching {
+            data.subList(row * width * 3 + column * 3, row * width * 3 + column * 3 + 3)
+        }.onFailure {
+            log.info { "$row $column" }
+            log.info { "$width $height" }
+        }.getOrThrow()
     }
 }
 

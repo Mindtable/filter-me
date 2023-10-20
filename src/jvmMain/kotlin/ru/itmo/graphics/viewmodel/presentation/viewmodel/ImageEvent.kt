@@ -18,3 +18,6 @@ data class ChannelSettingsChanged(val channel: Channel) : ImageEvent
 object MonochromeModeChanged : ImageEvent
 
 data class ApplicationColorSpaceChanged(val colorSpace: ApplicationColorSpace) : ImageEvent
+
+data class ConvertGamma(val newGamma: Float) : ImageEvent
+data class AssignGamma(val newGamma: Float) : ImageEvent
