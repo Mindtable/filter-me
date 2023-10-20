@@ -9,16 +9,11 @@ import java.io.InputStream
 import java.io.OutputStream
 
 abstract class Pnm : ImageType {
-    protected var maxPixelValue: Int = 0
+    protected var maxPixelValue: Int = 255
     abstract val pnmType: ByteArray
 
     protected fun normaliseDataBlock(inputStream: InputStream): Float {
         var value = inputStream.read()
-
-        if (maxPixelValue > 255) {
-            value = value.shl(8)
-            value += inputStream.read()
-        }
 
         value = value.coerceIn(0..maxPixelValue)
 
@@ -37,8 +32,8 @@ abstract class Pnm : ImageType {
         val height = InputStreamUtils.readPositiveNumber(inputStream)
         maxPixelValue = InputStreamUtils.readPositiveNumber(inputStream)
 
-        if (maxPixelValue > 65536) {
-            throw Exception("MaxValue for pixel can't be more than 65536. Found $maxPixelValue")
+        if (maxPixelValue > 255) {
+            throw Exception("MaxValue for pixel can't be more than 255. Found $maxPixelValue")
         }
 
         return ImageDimension(width, height)

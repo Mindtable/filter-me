@@ -17,11 +17,16 @@ data class ImageModel(
         KotlinLogging.logger { }
     }
 
-    fun saveTo(fileName: String) {
-        if (type.isSupported && bitmap != null) {
+    fun saveTo(fileName: String, bitmapToSave: Bitmap? = null, imageType: ImageType? = null) {
+        val finalBitmap: Bitmap? = bitmapToSave ?: bitmap
+        val type: ImageType = imageType ?: type
+
+        if (type.isSupported && finalBitmap != null) {
             log.info { "Save as PPM" }
             val byteStream = ByteArrayOutputStream()
-            type.writeFile(byteStream, bitmap!!)
+
+            type.writeFile(byteStream, finalBitmap)
+
             File(fileName).writeBytes(byteStream.toByteArray())
         } else {
             log.info { "Save by default way" }

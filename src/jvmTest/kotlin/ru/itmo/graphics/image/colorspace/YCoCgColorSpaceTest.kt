@@ -26,10 +26,28 @@ class YCoCgColorSpaceTest {
         }
     }
 
+    private fun fromRgb(pixel: Pixel): Pixel {
+        val bb: Array<Float> = Array(3) { 0f }
+        bb[0] = pixel.channelOne
+        bb[1] = pixel.channelTwo
+        bb[2] = pixel.channelThree
+        YCoCgColorSpace.fromRgb(bb)
+        return Pixel(bb[0], bb[1], bb[2])
+    }
+
+    private fun toRgb(pixel: Pixel): Pixel {
+        val bb: Array<Float> = Array(3) { 0f }
+        bb[0] = pixel.channelOne
+        bb[1] = pixel.channelTwo
+        bb[2] = pixel.channelThree
+        YCoCgColorSpace.toRgb(bb)
+        return Pixel(bb[0], bb[1], bb[2])
+    }
+
     @Test
     fun transitional() {
         for (pair in rgbYcocgPixels) {
-            val result = YCoCgColorSpace.toRgb(YCoCgColorSpace.fromRgb(pair.first))
+            val result = toRgb(fromRgb(pair.first))
             compare(pair.first, result)
         }
     }
@@ -37,7 +55,7 @@ class YCoCgColorSpaceTest {
     @Test
     fun toRgb() {
         for (pair in rgbYcocgPixels) {
-            val result = YCoCgColorSpace.toRgb(pair.second)
+            val result = toRgb(pair.second)
             compare(pair.first, result)
         }
     }
@@ -45,7 +63,7 @@ class YCoCgColorSpaceTest {
     @Test
     fun fromRgb() {
         for (pair in rgbYcocgPixels) {
-            val result = YCoCgColorSpace.fromRgb(pair.first)
+            val result = fromRgb(pair.first)
             compare(pair.second, result)
         }
     }

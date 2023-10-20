@@ -17,9 +17,9 @@ import ru.itmo.graphics.image.colorspace.YCoCgColorSpace
 import ru.itmo.graphics.model.Actions
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ApplicationColorSpaceChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.ALL
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ChannelSettingsChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.MonochromeModeChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.OpenFileEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.SaveEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.StartSaveAsEvent
@@ -27,7 +27,8 @@ import ru.itmo.graphics.viewmodel.presentation.viewmodel.StartSaveAsEvent
 @Composable
 fun FrameWindowScope.MenuBarView(
     activeColorSpace: ApplicationColorSpace,
-    showChannels: Map<Channel, Boolean>,
+    activeChannel: Channel,
+    isMonochromeMode: Boolean,
     onEvent: (ImageEvent) -> Unit,
 ) {
     MenuBar {
@@ -55,20 +56,18 @@ fun FrameWindowScope.MenuBarView(
             text = "Channels",
             mnemonic = 'F',
         ) {
-            val allActive = showChannels.values.all { value -> value }
-
-            showChannels.entries.forEach { (channel, isActive) ->
+            Channel.entries.forEach { channel ->
                 CheckboxItem(
                     channel.text,
                     onCheckedChange = { onEvent(ChannelSettingsChanged(channel)) },
-                    checked = !allActive && isActive,
+                    checked = channel == activeChannel,
                 )
             }
 
             CheckboxItem(
-                ALL.text,
-                onCheckedChange = { onEvent(ChannelSettingsChanged(ALL)) },
-                checked = allActive,
+                "Monochrome mode",
+                onCheckedChange = { onEvent(MonochromeModeChanged) },
+                checked = isMonochromeMode,
             )
         }
         Menu(

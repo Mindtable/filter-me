@@ -1,15 +1,15 @@
 package ru.itmo.graphics.image.colorspace
 
-import ru.itmo.graphics.viewmodel.domain.Pixel
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
 import kotlin.math.abs
 
 object HslColorSpace : ApplicationColorSpace {
     override val name = "HSL"
 
-    override fun toRgb(pixel: Pixel): Pixel {
-        val hue = pixel.channelOne * 360
-        val saturation = pixel.channelTwo
-        val lightness = pixel.channelThree
+    override fun toRgb(bb: MutableList<Float>) {
+        val hue = bb[0] * 360
+        val saturation = bb[1]
+        val lightness = bb[2]
 
         var red: Float
         var green: Float
@@ -58,17 +58,19 @@ object HslColorSpace : ApplicationColorSpace {
         green += m
         blue += m
 
-        return Pixel(red, green, blue)
+        bb[0] = red
+        bb[1] = green
+        bb[2] = blue
     }
 
-    override fun fromRgb(pixel: Pixel): Pixel {
+    override fun fromRgb(bb: MutableList<Float>) {
         var hue: Float
         val saturation: Float
         val lightness: Float
 
-        val red = pixel.channelOne
-        val green = pixel.channelTwo
-        val blue = pixel.channelThree
+        val red = bb[0]
+        val green = bb[1]
+        val blue = bb[2]
 
         val max = maxOf(red, green, blue)
         val min = minOf(red, green, blue)
@@ -94,6 +96,21 @@ object HslColorSpace : ApplicationColorSpace {
             hue += 360
         }
 
-        return Pixel(hue / 360f, saturation, lightness)
+        bb[0] = hue / 360f
+        bb[1] = saturation
+        bb[2] = lightness
+    }
+
+    override fun separateChannel(bb: MutableList<Float>, channel: Channel) {
+        if (channel == Channel.CHANNEL_ONE) {
+            bb[1] = 1f
+            bb[2] = 0.5f
+        } else if (channel == Channel.CHANNEL_TWO) {
+            bb[0] = 1f
+            bb[2] = 0.5f
+        } else if (channel == Channel.CHANNEL_THREE) {
+            bb[0] = 1f
+            bb[1] = 0f
+        }
     }
 }

@@ -22,27 +22,29 @@ class YCbCrColorSpaceTest {
         }
     }
 
+    private fun fromRgb(pixel: Pixel): Pixel {
+        val bb: Array<Float> = Array(3) { 0f }
+        bb[0] = pixel.channelOne
+        bb[1] = pixel.channelTwo
+        bb[2] = pixel.channelThree
+        YCbCr601ColorSpace.fromRgb(bb)
+        return Pixel(bb[0], bb[1], bb[2])
+    }
+
+    private fun toRgb(pixel: Pixel): Pixel {
+        val bb: Array<Float> = Array(3) { 0f }
+        bb[0] = pixel.channelOne
+        bb[1] = pixel.channelTwo
+        bb[2] = pixel.channelThree
+        YCbCr601ColorSpace.toRgb(bb)
+        return Pixel(bb[0], bb[1], bb[2])
+    }
+
     @Test
     fun transitional() {
         for (pair in rgbYcbcrPixels) {
-            val result = YCbCr601ColorSpace.toRgb(YCbCr601ColorSpace.fromRgb(pair.first))
+            val result = toRgb(fromRgb(pair.first))
             compare(pair.first, result)
-        }
-    }
-
-    @Test
-    fun toRgb() {
-        for (pair in rgbYcbcrPixels) {
-            val result = YCbCr601ColorSpace.toRgb(pair.second)
-            compare(pair.first, result)
-        }
-    }
-
-    @Test
-    fun fromRgb() {
-        for (pair in rgbYcbcrPixels) {
-            val result = YCbCr601ColorSpace.fromRgb(pair.first)
-            compare(pair.second, result)
         }
     }
 

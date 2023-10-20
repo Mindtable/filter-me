@@ -4,7 +4,6 @@ import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.ColorInfo
 import ru.itmo.graphics.model.ImageDimension
 import ru.itmo.graphics.model.ImageType
-import ru.itmo.graphics.viewmodel.domain.Pixel
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -17,7 +16,7 @@ class SkiaSupported : ImageType {
         TODO("Not yet implemented")
     }
 
-    override fun readPixelInfo(inputStream: InputStream, pixelIndex: Int, byteArray: ByteArray): Pixel {
+    override fun readPixelInfo(inputStream: InputStream, pixelIndex: Int, bb: MutableList<Float>) {
         TODO("Not yet implemented")
     }
 

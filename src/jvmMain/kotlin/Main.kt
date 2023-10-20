@@ -19,9 +19,6 @@ import ru.itmo.graphics.image.type.P6TypeResolver
 import ru.itmo.graphics.image.type.SkiaSupportedTypeResolver
 import ru.itmo.graphics.viewmodel.presentation.view.MainWindowView
 import ru.itmo.graphics.viewmodel.presentation.view.MenuBarView
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.CHANNEL_ONE
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.CHANNEL_THREE
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel.CHANNEL_TWO
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageViewModel
 import ru.itmo.graphics.viewmodel.tools.toBitmap
 import java.awt.Dimension
@@ -51,17 +48,15 @@ fun main() {
 
             val imageBitmap by remember(
                 state.pixelData,
-                state.showChannels[CHANNEL_ONE] ?: true,
-                state.showChannels[CHANNEL_TWO] ?: true,
-                state.showChannels[CHANNEL_THREE] ?: true,
                 state.colorSpace,
+                state.channel,
+                state.isMonochromeMode,
             ) {
                 mutableStateOf(
                     state.pixelData?.toBitmap(
                         state.colorSpace,
-                        state.showChannels[CHANNEL_ONE] ?: true,
-                        state.showChannels[CHANNEL_TWO] ?: true,
-                        state.showChannels[CHANNEL_THREE] ?: true,
+                        state.channel,
+                        state.isMonochromeMode,
                     )?.asComposeImageBitmap(),
                 )
             }
@@ -71,7 +66,12 @@ fun main() {
             }
 
             setMinWindowSize()
-            MenuBarView(state.colorSpace, state.showChannels, viewModel::onEvent)
+            MenuBarView(
+                state.colorSpace,
+                state.channel,
+                state.isMonochromeMode,
+                viewModel::onEvent,
+            )
             MaterialTheme {
                 MainWindowView(
                     window,

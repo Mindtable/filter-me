@@ -1,30 +1,47 @@
 package ru.itmo.graphics.image.colorspace
 
-import ru.itmo.graphics.viewmodel.domain.Pixel
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
 
 private object YCbCr {
-    fun toRgb(pixel: Pixel, a: Float, b: Float, c: Float, d: Float, e: Float): Pixel {
-        val luma = pixel.channelOne
-        val blueDifference = pixel.channelTwo
-        val redDifference = pixel.channelThree
+    fun toRgb(a: Float, b: Float, c: Float, d: Float, e: Float, bb: MutableList<Float>) {
+        val luma = bb[0]
+        val blueDifference = bb[1]
+        val redDifference = bb[2]
 
         val red = luma + e * redDifference
         val green = luma - (a * e / b) * redDifference - (c * d / b) * blueDifference
         val blue = luma + d * blueDifference
 
-        return Pixel(red, green, blue)
+        bb[0] = red
+        bb[1] = green
+        bb[2] = blue
     }
 
-    fun fromRgb(pixel: Pixel, a: Float, b: Float, c: Float, d: Float, e: Float): Pixel {
-        val red = pixel.channelOne
-        val green = pixel.channelTwo
-        val blue = pixel.channelThree
+    fun fromRgb(a: Float, b: Float, c: Float, d: Float, e: Float, bb: MutableList<Float>) {
+        val red = bb[0]
+        val green = bb[1]
+        val blue = bb[2]
 
         val luma = a * red + b * green + c * blue
         val blueDifference = (blue - luma) / d
         val redDifference = (red - luma) / e
 
-        return Pixel(luma, blueDifference, redDifference)
+        bb[0] = luma
+        bb[1] = blueDifference
+        bb[2] = redDifference
+    }
+
+    fun separateChannel(bb: MutableList<Float>, channel: Channel) {
+        if (channel == Channel.CHANNEL_ONE) {
+            bb[1] = 0f
+            bb[2] = 0f
+        } else if (channel == Channel.CHANNEL_TWO) {
+            bb[0] = 0.5f
+            bb[2] = 0f
+        } else if (channel == Channel.CHANNEL_THREE) {
+            bb[0] = 0.5f
+            bb[1] = 0f
+        }
     }
 }
 
@@ -37,12 +54,16 @@ object YCbCr601ColorSpace : ApplicationColorSpace {
 
     override val name = "YCbCr.601"
 
-    override fun toRgb(pixel: Pixel): Pixel {
-        return YCbCr.toRgb(pixel, A, B, C, D, E)
+    override fun fromRgb(bb: MutableList<Float>) {
+        YCbCr.fromRgb(A, B, C, D, E, bb)
     }
 
-    override fun fromRgb(pixel: Pixel): Pixel {
-        return YCbCr.fromRgb(pixel, A, B, C, D, E)
+    override fun toRgb(bb: MutableList<Float>) {
+        YCbCr.toRgb(A, B, C, D, E, bb)
+    }
+
+    override fun separateChannel(bb: MutableList<Float>, channel: Channel) {
+        YCbCr.separateChannel(bb, channel)
     }
 }
 
@@ -55,11 +76,15 @@ object YCbCr709ColorSpace : ApplicationColorSpace {
 
     override val name = "YCbCr.709"
 
-    override fun toRgb(pixel: Pixel): Pixel {
-        return YCbCr.toRgb(pixel, A, B, C, D, E)
+    override fun fromRgb(bb: MutableList<Float>) {
+        YCbCr.fromRgb(A, B, C, D, E, bb)
     }
 
-    override fun fromRgb(pixel: Pixel): Pixel {
-        return YCbCr.fromRgb(pixel, A, B, C, D, E)
+    override fun toRgb(bb: MutableList<Float>) {
+        YCbCr.toRgb(A, B, C, D, E, bb)
+    }
+
+    override fun separateChannel(bb: MutableList<Float>, channel: Channel) {
+        YCbCr.separateChannel(bb, channel)
     }
 }

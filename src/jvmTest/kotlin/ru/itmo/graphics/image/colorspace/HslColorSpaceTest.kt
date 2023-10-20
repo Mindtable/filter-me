@@ -26,10 +26,28 @@ class HslColorSpaceTest {
         }
     }
 
+    private fun fromRgb(pixel: Pixel): Pixel {
+        val bb: Array<Float> = Array(3) { 0f }
+        bb[0] = pixel.channelOne
+        bb[1] = pixel.channelTwo
+        bb[2] = pixel.channelThree
+        HslColorSpace.fromRgb(bb)
+        return Pixel(bb[0], bb[1], bb[2])
+    }
+
+    private fun toRgb(pixel: Pixel): Pixel {
+        val bb: Array<Float> = Array(3) { 0f }
+        bb[0] = pixel.channelOne
+        bb[1] = pixel.channelTwo
+        bb[2] = pixel.channelThree
+        HslColorSpace.toRgb(bb)
+        return Pixel(bb[0], bb[1], bb[2])
+    }
+
     @Test
     fun transitional() {
         for (pair in rgbHslPixels) {
-            val result = HslColorSpace.toRgb(HslColorSpace.fromRgb(pair.first))
+            val result = toRgb(fromRgb(pair.first))
             compare(pair.first, result)
         }
     }
@@ -37,7 +55,7 @@ class HslColorSpaceTest {
     @Test
     fun toRgb() {
         for (pair in rgbHslPixels) {
-            val result = HslColorSpace.toRgb(pair.second)
+            val result = toRgb(pair.second)
             compare(pair.first, result)
         }
     }
@@ -45,7 +63,7 @@ class HslColorSpaceTest {
     @Test
     fun fromRgb() {
         for (pair in rgbHslPixels) {
-            val result = HslColorSpace.fromRgb(pair.first)
+            val result = fromRgb(pair.first)
             compare(pair.second, result)
         }
     }

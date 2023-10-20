@@ -1,16 +1,16 @@
 package ru.itmo.graphics.viewmodel.domain
 
 class PixelData(
-    val data: Array<Array<Pixel>>,
+    val data: MutableList<Float>,
+    val height: Int,
+    val width: Int,
 ) {
-    val height: Int
-        get() = data.size
-
-    val width: Int
-        get() = data.firstOrNull()?.size ?: 0
-
     val pixelCount: Int
         get() = height * width
+
+    fun getPixel(row: Int, column: Int): MutableList<Float> {
+        return data.subList(row * width * 3 + column * 3, row * width * 3 + column * 3 + 3)
+    }
 }
 
 data class Pixel(

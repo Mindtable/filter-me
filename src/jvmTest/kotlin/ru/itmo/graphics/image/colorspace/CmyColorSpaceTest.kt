@@ -23,10 +23,28 @@ class CmyColorSpaceTest {
         }
     }
 
+    private fun fromRgb(pixel: Pixel): Pixel {
+        val bb: Array<Float> = Array(3) { 0f }
+        bb[0] = pixel.channelOne
+        bb[1] = pixel.channelTwo
+        bb[2] = pixel.channelThree
+        CmyColorSpace.fromRgb(bb)
+        return Pixel(bb[0], bb[1], bb[2])
+    }
+
+    private fun toRgb(pixel: Pixel): Pixel {
+        val bb: Array<Float> = Array(3) { 0f }
+        bb[0] = pixel.channelOne
+        bb[1] = pixel.channelTwo
+        bb[2] = pixel.channelThree
+        CmyColorSpace.toRgb(bb)
+        return Pixel(bb[0], bb[1], bb[2])
+    }
+
     @Test
     fun transitional() {
         for (pair in rgbCmyPixels) {
-            val result = CmyColorSpace.toRgb(CmyColorSpace.fromRgb(pair.first))
+            val result = toRgb(fromRgb(pair.first))
             assertEquals(pair.first, result)
         }
     }
@@ -34,14 +52,14 @@ class CmyColorSpaceTest {
     @Test
     fun toRgb() {
         for (pair in rgbCmyPixels) {
-            assertEquals(pair.first, CmyColorSpace.toRgb(pair.second))
+            assertEquals(pair.first, toRgb(pair.second))
         }
     }
 
     @Test
     fun fromRgb() {
         for (pair in rgbCmyPixels) {
-            assertEquals(pair.second, CmyColorSpace.fromRgb(pair.first))
+            assertEquals(pair.second, fromRgb(pair.first))
         }
     }
 }

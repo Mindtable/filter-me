@@ -1,15 +1,15 @@
 package ru.itmo.graphics.image.colorspace
 
-import ru.itmo.graphics.viewmodel.domain.Pixel
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
 import kotlin.math.abs
 
 object HsvColorSpace : ApplicationColorSpace {
     override val name = "HSV"
 
-    override fun toRgb(pixel: Pixel): Pixel {
-        val hue = pixel.channelOne * 360
-        val saturation = pixel.channelTwo
-        val value = pixel.channelThree
+    override fun toRgb(bb: MutableList<Float>) {
+        val hue = bb[0] * 360
+        val saturation = bb[1]
+        val value = bb[2]
 
         var red: Float
         var green: Float
@@ -27,26 +27,31 @@ object HsvColorSpace : ApplicationColorSpace {
                 green = x
                 blue = 0f
             }
+
             hue < 120 -> {
                 red = x
                 green = chroma
                 blue = 0f
             }
+
             hue < 180 -> {
                 red = 0f
                 green = chroma
                 blue = x
             }
+
             hue < 240 -> {
                 red = 0f
                 green = x
                 blue = chroma
             }
+
             hue < 300 -> {
                 red = x
                 green = 0f
                 blue = chroma
             }
+
             else -> {
                 red = chroma
                 green = 0f
@@ -58,17 +63,19 @@ object HsvColorSpace : ApplicationColorSpace {
         green += m
         blue += m
 
-        return Pixel(red, green, blue)
+        bb[0] = red
+        bb[1] = green
+        bb[2] = blue
     }
 
-    override fun fromRgb(pixel: Pixel): Pixel {
+    override fun fromRgb(bb: MutableList<Float>) {
         var hue: Float
         val saturation: Float
         val value: Float
 
-        val red = pixel.channelOne
-        val green = pixel.channelTwo
-        val blue = pixel.channelThree
+        val red = bb[0]
+        val green = bb[1]
+        val blue = bb[2]
 
         val max = maxOf(red, green, blue)
         val min = minOf(red, green, blue)
@@ -94,6 +101,21 @@ object HsvColorSpace : ApplicationColorSpace {
 
         value = max
 
-        return Pixel(hue / 360f, saturation, value)
+        bb[0] = hue / 360f
+        bb[1] = saturation
+        bb[2] = value
+    }
+
+    override fun separateChannel(bb: MutableList<Float>, channel: Channel) {
+        if (channel == Channel.CHANNEL_ONE) {
+            bb[1] = 1f
+            bb[2] = 1f
+        } else if (channel == Channel.CHANNEL_TWO) {
+            bb[0] = 1f
+            bb[2] = 1f
+        } else if (channel == Channel.CHANNEL_THREE) {
+            bb[0] = 1f
+            bb[1] = 0f
+        }
     }
 }

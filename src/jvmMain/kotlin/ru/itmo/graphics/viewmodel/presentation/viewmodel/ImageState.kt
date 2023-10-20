@@ -11,14 +11,11 @@ data class ImageState(
     val log: String = "",
     val file: String? = null,
     val isError: Boolean = false,
+    val isMonochromeMode: Boolean = false,
     val openFileDialog: FileDialogType = NONE,
     val bitmap: Bitmap? = null,
     val imageModel: ImageModel? = null,
     val colorSpace: ApplicationColorSpace = RgbColorSpace,
     val pixelData: PixelData? = null,
-    val showChannels: Map<Channel, Boolean> = mapOf(
-        Channel.CHANNEL_ONE to true,
-        Channel.CHANNEL_TWO to true,
-        Channel.CHANNEL_THREE to true,
-    ),
+    val channel: Channel = Channel.ALL,
 )
