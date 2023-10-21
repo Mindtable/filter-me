@@ -7,11 +7,11 @@ import org.jetbrains.skia.ColorInfo
 import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType.RGB_888X
 import org.jetbrains.skia.ImageInfo
-import ru.itmo.graphics.image.colorspace.ApplicationColorSpace
-import ru.itmo.graphics.image.gamma.GammaConversion
-import ru.itmo.graphics.model.ImageModel
+import ru.itmo.graphics.viewmodel.domain.ImageModel
 import ru.itmo.graphics.viewmodel.domain.PixelData
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.Channel
+import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
+import ru.itmo.graphics.viewmodel.domain.image.gamma.GammaConversion
+import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
 import kotlin.system.measureTimeMillis
 
 private val log = KotlinLogging.logger { }
@@ -47,8 +47,8 @@ fun readImageV2(
 
         val totalLen = totalPixels * 3
 
-        for (i in 0 ..< height) {
-            for (j in 0 ..< width) {
+        for (i in 0..<height) {
+            for (j in 0..<width) {
                 imageType.readPixelInfo(fileStream, i, pixelData.getPixel(i, j))
             }
         }
@@ -59,12 +59,14 @@ fun readImageV2(
         fileStream.close()
     }
 
+    log.info { "Time used to read $timeInMillis ms" }
+
     return pixelData
 }
 
 fun PixelData.toBitmap(
     colorSpace: ApplicationColorSpace,
-    channel: Channel,
+    channel: ImageChannel,
     isMonochromeMode: Boolean,
     gamma: Float,
 ): Bitmap {
@@ -76,26 +78,26 @@ fun PixelData.toBitmap(
     var pixel: MutableList<Float>
 
     val timeInMillis = measureTimeMillis {
-        for (i in 0 ..< height) {
-            for (j in 0 ..< width) {
+        for (i in 0..<height) {
+            for (j in 0..<width) {
                 pixel = getPixel(i, j)
                 bb[0] = pixel[0]
                 bb[1] = pixel[1]
                 bb[2] = pixel[2]
 
                 if (isMonochromeMode) {
-                    if (channel == Channel.CHANNEL_ONE) {
+                    if (channel == ImageChannel.CHANNEL_ONE) {
                         bb[1] = bb[0]
                         bb[2] = bb[0]
-                    } else if (channel == Channel.CHANNEL_TWO) {
+                    } else if (channel == ImageChannel.CHANNEL_TWO) {
                         bb[0] = bb[1]
                         bb[2] = bb[1]
-                    } else if (channel == Channel.CHANNEL_THREE) {
+                    } else if (channel == ImageChannel.CHANNEL_THREE) {
                         bb[0] = bb[2]
                         bb[1] = bb[2]
                     }
                 } else {
-                    if (channel != Channel.ALL) {
+                    if (channel != ImageChannel.ALL) {
                         colorSpace.separateChannel(bb, channel)
                     }
 
@@ -137,8 +139,8 @@ fun PixelData.convertColorSpace(
 ): PixelData {
     var pixel: MutableList<Float>
 
-    for (i in 0 ..< height) {
-        for (j in 0 ..< width) {
+    for (i in 0..<height) {
+        for (j in 0..<width) {
             pixel = getPixel(i, j)
             oldColorSpace.toRgb(pixel)
             newColorSpace.fromRgb(pixel)
@@ -154,12 +156,11 @@ fun PixelData.convertGamma(
 ): PixelData {
     var pixel: MutableList<Float>
 
-    for (i in 0 ..< height) {
-        for (j in 0 ..< width) {
+    for (i in 0..<height) {
+        for (j in 0..<width) {
             pixel = getPixel(i, j)
             GammaConversion.applyGamma(pixel, oldGamma)
-            if (newGamma == 0f)
-            {
+            if (newGamma == 0f) {
                 GammaConversion.applyGamma(pixel, 1 / 2.4f)
             } else {
                 GammaConversion.applyGamma(pixel, 1 / newGamma)

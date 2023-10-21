@@ -1,6 +1,7 @@
 package ru.itmo.graphics.image.colorspace
 
 import ru.itmo.graphics.viewmodel.domain.Pixel
+import ru.itmo.graphics.viewmodel.domain.image.colorspace.YCbCr601ColorSpace
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -23,7 +24,7 @@ class YCbCrColorSpaceTest {
     }
 
     private fun fromRgb(pixel: Pixel): Pixel {
-        val bb: Array<Float> = Array(3) { 0f }
+        val bb = MutableList(3) { 0f }
         bb[0] = pixel.channelOne
         bb[1] = pixel.channelTwo
         bb[2] = pixel.channelThree
@@ -32,7 +33,7 @@ class YCbCrColorSpaceTest {
     }
 
     private fun toRgb(pixel: Pixel): Pixel {
-        val bb: Array<Float> = Array(3) { 0f }
+        val bb = MutableList(3) { 0f }
         bb[0] = pixel.channelOne
         bb[1] = pixel.channelTwo
         bb[2] = pixel.channelThree

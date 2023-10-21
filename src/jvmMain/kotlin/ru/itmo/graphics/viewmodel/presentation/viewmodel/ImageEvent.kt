@@ -1,6 +1,8 @@
 package ru.itmo.graphics.viewmodel.presentation.viewmodel
 
-import ru.itmo.graphics.image.colorspace.ApplicationColorSpace
+import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
+import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
+import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 
 sealed interface ImageEvent
 
@@ -12,12 +14,16 @@ object SaveEvent : ImageEvent
 object StartSaveAsEvent : ImageEvent
 
 data class ImageError(val error: Throwable) : ImageEvent
-object ImageErrorDismissed : ImageEvent
+data object ImageErrorDismissed : ImageEvent
 
-data class ChannelSettingsChanged(val channel: Channel) : ImageEvent
-object MonochromeModeChanged : ImageEvent
+data class ChannelSettingsChanged(val channel: ImageChannel) : ImageEvent
+data object MonochromeModeChanged : ImageEvent
 
 data class ApplicationColorSpaceChanged(val colorSpace: ApplicationColorSpace) : ImageEvent
 
 data class ConvertGamma(val newGamma: Float) : ImageEvent
 data class AssignGamma(val newGamma: Float) : ImageEvent
+
+data class OpenSettings(val settingsType: SettingsType) : ImageEvent
+data object CloseSettings : ImageEvent
+data object DarkModeSettingSwitch : ImageEvent

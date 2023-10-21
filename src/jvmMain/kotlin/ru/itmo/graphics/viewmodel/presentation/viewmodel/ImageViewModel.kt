@@ -12,13 +12,14 @@ import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.ColorAlphaType.PREMUL
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
-import ru.itmo.graphics.image.type.FileTypeResolver
-import ru.itmo.graphics.model.ImageModel
-import ru.itmo.graphics.model.image.PnmP5
+import ru.itmo.graphics.viewmodel.domain.ImageModel
 import ru.itmo.graphics.viewmodel.domain.PixelData
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.NONE
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.OPEN
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.FileDialogType.SAVE
+import ru.itmo.graphics.viewmodel.domain.image.type.FileTypeResolver
+import ru.itmo.graphics.viewmodel.domain.model.image.PnmP5
+import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.NONE
+import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.OPEN
+import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.SAVE
+import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
 import ru.itmo.graphics.viewmodel.tools.convertColorSpace
 import ru.itmo.graphics.viewmodel.tools.convertGamma
 import ru.itmo.graphics.viewmodel.tools.readImageV2
@@ -49,7 +50,7 @@ class ImageViewModel(
                 )
 
                 scope.launch {
-                    if (state.value.channel == Channel.ALL) {
+                    if (state.value.channel == ImageChannel.ALL) {
                         imageModel.saveTo(event.path, bitmapToSave)
                     } else {
                         imageModel.saveTo(event.path, bitmapToSave, PnmP5)
@@ -93,7 +94,7 @@ class ImageViewModel(
                 )
 
                 scope.launch {
-                    if (state.value.channel == Channel.ALL) {
+                    if (state.value.channel == ImageChannel.ALL) {
                         imageModel.saveTo(imageModel.file.absolutePath, bitmapToSave)
                     } else {
                         imageModel.saveTo(imageModel.file.absolutePath, bitmapToSave, PnmP5)
@@ -260,6 +261,38 @@ class ImageViewModel(
                             else -> throw IllegalStateException("Unsupported type!")
                         }
                     }
+                }
+            }
+
+            is OpenSettings -> {
+                scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                    if (state.value.settingsType == event.settingsType) {
+                        return@launch
+                    }
+
+                    state.update {
+                        logger.info { "Settings update to ${event.settingsType}" }
+                        it.copy(
+                            settingsType = event.settingsType,
+                        )
+                    }
+                }
+            }
+
+            CloseSettings -> {
+                state.update {
+                    it.copy(
+                        settingsType = null,
+                    )
+                }
+            }
+
+            DarkModeSettingSwitch -> {
+                state.update {
+                    it.copy(
+                        isDarkMode = !it.isDarkMode,
+                        log = "Dark mode switch!",
+                    )
                 }
             }
         }
