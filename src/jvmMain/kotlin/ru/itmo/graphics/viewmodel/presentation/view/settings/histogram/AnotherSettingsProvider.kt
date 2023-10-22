@@ -1,31 +1,33 @@
 package ru.itmo.graphics.viewmodel.presentation.view.settings.histogram
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Button
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dpRoundToPx
+import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramBlue
+import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramGreen
+import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramRed
+import io.github.oshai.kotlinlogging.KotlinLogging
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsViewProvider
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.AssignGamma
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.ConvertGamma
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.DarkModeSettingSwitch
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageState
-import java.awt.Dimension
+import kotlin.random.Random
+
+private val log = KotlinLogging.logger { }
 
 class AnotherSettingsProvider : SettingsViewProvider {
 
@@ -34,37 +36,12 @@ class AnotherSettingsProvider : SettingsViewProvider {
 
     @Composable
     override fun draw(state: ImageState, onEvent: (ImageEvent) -> Unit) {
-        Column {
-            var textToInput by remember { mutableStateOf("") }
-            Row {
-                Text(
-                    text = "Assigned gamma is ${state.gamma}",
-                )
-            }
-            Row {
-                TextField(
-                    value = textToInput,
-                    onValueChange = { textToInput = it },
-                )
-            }
-            Row {
-                Button(onClick = {
-                    textToInput.toFloatOrNull()?.let {
-                        onEvent(AssignGamma(it))
-                        textToInput = ""
-                    }
-                }) {
-                    Text("Assign")
-                }
-                Button(onClick = {
-                    textToInput.toFloatOrNull()?.let {
-                        onEvent(ConvertGamma(it))
-                        textToInput = ""
-                    }
-                }) {
-                    Text("Convert")
-                }
-            }
+        Column(
+            Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .width(600.dp)
+                .padding(10.dp),
+        ) {
             Row {
                 RadioButton(
                     selected = state.isDarkMode,
@@ -72,15 +49,46 @@ class AnotherSettingsProvider : SettingsViewProvider {
                 )
                 Spacer(Modifier.width(30.dp))
                 Text(
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     text = "Dark mode setting",
                 )
             }
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                text = "Histogram view of brightness distribution",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
+            )
+            Histogram(
+                Array(255) { Random.nextInt(100) / 100f },
+                modifier = Modifier.height(200.dp),
+            )
+            Spacer(modifier = Modifier.height(20.dp).fillMaxWidth())
+            Histogram(
+                Array(255) { Random.nextInt(100) / 100f },
+                modifier = Modifier.height(200.dp),
+                strokeColor = MaterialTheme.colorScheme.histogramRed,
+            )
+            Spacer(modifier = Modifier.height(20.dp).fillMaxWidth())
+            Histogram(
+                Array(255) { Random.nextInt(100) / 100f },
+                modifier = Modifier.height(200.dp),
+                strokeColor = MaterialTheme.colorScheme.histogramGreen,
+            )
+            Spacer(modifier = Modifier.height(20.dp).fillMaxWidth())
+            Histogram(
+                Array(255) { Random.nextInt(100) / 100f },
+                modifier = Modifier.height(200.dp),
+                strokeColor = MaterialTheme.colorScheme.histogramBlue,
+            )
         }
     }
 
     @Composable
     override fun configureWindow(window: ComposeWindow) {
-        window.minimumSize = Dimension(100.dp.dpRoundToPx(), 100.dp.dpRoundToPx())
+        window.isResizable = false
     }
 }

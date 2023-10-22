@@ -13,7 +13,7 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.example.compose.AppTheme
+import ru.itmo.graphics.viewmodel.presentation.view.theme.AppTheme
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ru.itmo.graphics.viewmodel.domain.image.type.FileTypeResolver
 import ru.itmo.graphics.viewmodel.domain.image.type.P5TypeResolver

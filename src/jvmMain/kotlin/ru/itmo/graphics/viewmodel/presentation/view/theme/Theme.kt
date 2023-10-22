@@ -1,10 +1,15 @@
-package com.example.compose
+package ru.itmo.graphics.viewmodel.presentation.view.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,
@@ -70,6 +75,28 @@ private val DarkColors = darkColorScheme(
     scrim = md_theme_dark_scrim,
 )
 
+var histogramRedColor by mutableStateOf(md_theme_light_histogram_red)
+var histogramGreenColor by mutableStateOf(md_theme_light_histogram_green)
+var histogramBlueColor by mutableStateOf(md_theme_light_histogram_blue)
+
+var ColorScheme.histogramRed: Color
+    get() = histogramRedColor
+    private set(value) {
+        histogramRedColor = value
+    }
+
+var ColorScheme.histogramGreen: Color
+    get() = histogramGreenColor
+    private set(value) {
+        histogramGreenColor = value
+    }
+
+var ColorScheme.histogramBlue: Color
+    get() = histogramBlueColor
+    private set(value) {
+        histogramBlueColor = value
+    }
+
 @Composable
 fun AppTheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
@@ -79,6 +106,16 @@ fun AppTheme(
         LightColors
     } else {
         DarkColors
+    }
+
+    if (!useDarkTheme) {
+        colors.histogramRed = md_theme_light_histogram_red
+        colors.histogramGreen = md_theme_light_histogram_green
+        colors.histogramBlue = md_theme_light_histogram_blue
+    } else {
+        colors.histogramRed = md_theme_dark_histogram_red
+        colors.histogramGreen = md_theme_dark_histogram_green
+        colors.histogramBlue = md_theme_dark_histogram_blue
     }
 
     MaterialTheme(

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package com.example.compose
+package ru.itmo.graphics.viewmodel.presentation.view.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -35,6 +35,10 @@ val md_theme_light_surfaceTint = Color(0xFF275EA9)
 val md_theme_light_outlineVariant = Color(0xFFC4C6D0)
 val md_theme_light_scrim = Color(0xFF000000)
 
+val md_theme_light_histogram_red = Color(0xff581616)
+val md_theme_light_histogram_green = Color(0xff305816)
+val md_theme_light_histogram_blue = Color(0xff191c64)
+
 val md_theme_dark_primary = Color(0xFFAAC7FF)
 val md_theme_dark_onPrimary = Color(0xFF003064)
 val md_theme_dark_primaryContainer = Color(0xFF00468D)
@@ -65,5 +69,9 @@ val md_theme_dark_shadow = Color(0xFF000000)
 val md_theme_dark_surfaceTint = Color(0xFFAAC7FF)
 val md_theme_dark_outlineVariant = Color(0xFF44474E)
 val md_theme_dark_scrim = Color(0xFF000000)
+
+val md_theme_dark_histogram_red = Color(0xffcc1f1f)
+val md_theme_dark_histogram_green = Color(0xff60b02a)
+val md_theme_dark_histogram_blue = Color(0xff327bce)
 
 val seed = Color(0xFF275EA9)
