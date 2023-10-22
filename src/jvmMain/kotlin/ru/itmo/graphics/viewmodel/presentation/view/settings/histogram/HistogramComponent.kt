@@ -50,12 +50,18 @@ fun Histogram(
             val yDown = (1 - paddingPercent) * canvasHeight
             val strokeWidth = (xRight - xLeft) / dataSize
 
+            val maxValue = normalizedValues.max()
+
             log.info { "Data string ${normalizedValues.contentToString()}" }
 
             normalizedValues.forEachIndexed { index, value ->
+                val normalizedValue = if (value == 0f) value else value / maxValue
                 drawLine(
-                    start = Offset(x = xLeft + index * strokeWidth, y = yTop + (1 - value) * (yDown - yTop)),
-                    end = Offset(x = xLeft + index * strokeWidth, y = yDown),
+                    start = Offset(
+                        x = xLeft + index * strokeWidth + strokeWidth * 0.5f,
+                        y = yTop + (1 - normalizedValue) * (yDown - yTop),
+                    ),
+                    end = Offset(x = xLeft + index * strokeWidth + strokeWidth * 0.5f, y = yDown),
                     color = strokeColor,
                     strokeWidth = strokeWidth,
                 )

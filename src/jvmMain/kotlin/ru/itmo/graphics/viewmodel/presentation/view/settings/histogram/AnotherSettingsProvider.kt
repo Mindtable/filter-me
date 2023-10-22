@@ -16,12 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramBlue
-import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramGreen
-import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramRed
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsViewProvider
+import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramBlue
+import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramGreen
+import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramRed
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.DarkModeSettingSwitch
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageState
@@ -63,7 +63,7 @@ class AnotherSettingsProvider : SettingsViewProvider {
                 textAlign = TextAlign.Center,
             )
             Histogram(
-                Array(255) { Random.nextInt(100) / 100f },
+                arrayOf(0.2f, 0.0f, 0.1f, 0.3f, 0.2f),
                 modifier = Modifier.height(200.dp),
             )
             Spacer(modifier = Modifier.height(20.dp).fillMaxWidth())
