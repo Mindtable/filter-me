@@ -5,13 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomAppBar
@@ -21,17 +19,25 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.withSave
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isUnspecified
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -125,12 +131,21 @@ fun MainWindowView(
                     }
                 },
                 bottomBar = {
+                    var width by remember {
+                        mutableStateOf(1)
+                    }
+                    var height by remember {
+                        mutableStateOf(1)
+                    }
                     BottomAppBar(
                         modifier = Modifier.fillMaxWidth()
-                            .fillMaxHeight(0.15f),
+                            .fillMaxHeight(0.15f).onSizeChanged {
+                                width = it.width
+                                height = it.height
+
+                            },
                         contentColor = MaterialTheme.colorScheme.primaryContainer,
                         backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentPadding = PaddingValues(0.2.dp),
                     ) {
                         Row(
                             Modifier.fillMaxWidth()
@@ -140,10 +155,11 @@ fun MainWindowView(
                                 ),
                         ) {
                             Column {
-                                Text(
-                                    textAlign = TextAlign.Left,
-                                    text = state.log,
-                                    modifier = Modifier.padding(0.3.dp),
+                                ResizedText(
+                                    log = state.log,
+                                    modifier = Modifier,
+                                    width = width,
+                                    height = height,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                     style = MaterialTheme.typography.displayLarge,
                                 )
@@ -193,3 +209,52 @@ private fun coroutineExceptionHandler(onEvent: (ImageEvent) -> Unit) =
         exception.printStackTrace()
         onEvent(ImageError(exception))
     }
+
+@Composable
+fun ResizedText(
+    log: String,
+    style: TextStyle = MaterialTheme.typography.displayLarge,
+    width: Int,
+    height: Int,
+    modifier: Modifier = Modifier,
+    color: Color = style.color
+) {
+    var resizedTextStyle by remember(style) {
+        mutableStateOf(style)
+    }
+    var isRedrawNeeded by remember {
+        mutableStateOf(false)
+    }
+    val defaultFontSize = MaterialTheme.typography.displayLarge.fontSize
+    Text(
+        text = log,
+        color = color,
+        modifier = modifier.drawWithContent {
+            if (isRedrawNeeded) {
+                drawContent()
+            }
+        },
+        softWrap = false,
+        style = resizedTextStyle,
+        onTextLayout = { message ->
+            if (message.didOverflowWidth || message.didOverflowHeight) {
+                if (style.fontSize.isUnspecified) {
+                    resizedTextStyle = resizedTextStyle.copy(
+                        fontSize = defaultFontSize
+                    )
+                }
+                if (resizedTextStyle.fontSize.value > 5) {
+                    resizedTextStyle = resizedTextStyle.copy(
+                        fontSize = resizedTextStyle.fontSize * 0.9
+                    )
+                }
+            } else if (message.size.width < 0.5 * width && message.size.height < 0.9 * height) {
+                resizedTextStyle = resizedTextStyle.copy(
+                    fontSize = resizedTextStyle.fontSize * 1.05
+                )
+            } else {
+                isRedrawNeeded = true
+            }
+        }
+    )
+}
