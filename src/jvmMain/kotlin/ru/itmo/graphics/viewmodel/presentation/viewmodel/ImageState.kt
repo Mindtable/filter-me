@@ -11,7 +11,7 @@ import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 
 data class ImageState(
-    val log: String = "",
+    val log: String = "hi",
     val file: String? = null,
     val isError: Boolean = false,
     val isMonochromeMode: Boolean = false,
