@@ -107,6 +107,7 @@ private fun TextInput(
                 focusedIndicatorColor = Color.Transparent, // hide the indicator
                 unfocusedIndicatorColor = Color.Transparent,
             ),
+            singleLine = true,
         )
     }
 }

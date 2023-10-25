@@ -51,6 +51,7 @@ kotlin {
                 implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
                 implementation("org.apache.logging.log4j:log4j-api:2.20.0")
                 implementation("org.apache.logging.log4j:log4j-core:2.20.0")
+                implementation("com.godaddy.android.colorpicker:compose-color-picker:0.5.0")
             }
         }
         val jvmTest by getting {
