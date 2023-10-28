@@ -22,15 +22,15 @@ fun Histogram(
     normalizedValues: Array<Float>,
     paddingPercent: Float = 0.005f,
     modifier: Modifier,
-    strokeColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    strokeColor: Color = MaterialTheme.colorScheme.onTertiary,
 ) {
     Box(
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.medium)
+            .background(color = MaterialTheme.colorScheme.tertiary, shape = MaterialTheme.shapes.medium)
             .padding(10.dp)
             .border(
                 width = 3.dp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.colorScheme.onTertiary,
                 shape = MaterialTheme.shapes.medium,
             )
             .padding(10.dp),
@@ -52,8 +52,6 @@ fun Histogram(
 
             val maxValue = normalizedValues.max()
 
-            log.info { "Data string ${normalizedValues.contentToString()}" }
-
             normalizedValues.forEachIndexed { index, value ->
                 val normalizedValue = if (value == 0f) value else value / maxValue
                 drawLine(
@@ -61,7 +59,10 @@ fun Histogram(
                         x = xLeft + index * strokeWidth + strokeWidth * 0.5f,
                         y = yTop + (1 - normalizedValue) * (yDown - yTop),
                     ),
-                    end = Offset(x = xLeft + index * strokeWidth + strokeWidth * 0.5f, y = yDown),
+                    end = Offset(
+                        x = xLeft + index * strokeWidth + strokeWidth * 0.5f,
+                        y = yDown,
+                    ),
                     color = strokeColor,
                     strokeWidth = strokeWidth,
                 )

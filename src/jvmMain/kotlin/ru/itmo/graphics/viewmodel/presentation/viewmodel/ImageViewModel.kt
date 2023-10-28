@@ -117,8 +117,10 @@ class ImageViewModel(
                                 log = "Colorspace changed to ${newColorSpace.name}",
                                 pixelData = it.pixelData?.convertColorSpace(state.value.colorSpace, newColorSpace),
                                 colorSpace = newColorSpace,
+                                imageVersion = it.imageVersion + 1,
                             )
                         }
+                        logger.info { "Color space change success with imageVersion ${state.value.imageVersion}" }
                     }
                 }
             }

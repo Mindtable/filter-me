@@ -12,6 +12,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.text.style.TextAlign
@@ -25,7 +30,8 @@ import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramRed
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.DarkModeSettingSwitch
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageState
-import kotlin.random.Random
+import ru.itmo.graphics.viewmodel.tools.transformPixelToInt
+import kotlin.system.measureTimeMillis
 
 private val log = KotlinLogging.logger { }
 
@@ -36,6 +42,33 @@ class AnotherSettingsProvider : SettingsViewProvider {
 
     @Composable
     override fun draw(state: ImageState, onEvent: (ImageEvent) -> Unit) {
+        var distributionState by remember { mutableStateOf(BrightnessDistribution(256)) }
+        LaunchedEffect(state.imageVersion, state.colorSpace) {
+            log.info { "Launch histogram calculation with imageVersion ${state.imageVersion}" }
+            val pixelData = state.pixelData ?: return@LaunchedEffect
+            val distribution = BrightnessDistribution(256)
+
+            measureTimeMillis {
+                for (i in 0..<pixelData.height) {
+                    for (j in 0..<pixelData.width) {
+                        val pixel = pixelData.getPixel(i, j)
+                        val allBrightness = transformPixelToInt(pixel.sum() / 3)
+
+                        val channelOneBrightness = transformPixelToInt(pixel[0])
+                        val channelTwoBrightness = transformPixelToInt(pixel[1])
+                        val channelThreeBrightness = transformPixelToInt(pixel[2])
+
+                        distribution.allChannels[allBrightness]++
+                        distribution.channelOne[channelOneBrightness]++
+                        distribution.channelTwo[channelTwoBrightness]++
+                        distribution.channelThree[channelThreeBrightness]++
+                    }
+                }
+
+                distributionState = distribution
+            }.also { log.info { "Histogram calculation took $it ms" } }
+        }
+
         Column(
             Modifier
                 .background(MaterialTheme.colorScheme.background)
@@ -63,24 +96,24 @@ class AnotherSettingsProvider : SettingsViewProvider {
                 textAlign = TextAlign.Center,
             )
             Histogram(
-                arrayOf(0.2f, 0.0f, 0.1f, 0.3f, 0.2f),
+                distributionState.allChannels,
                 modifier = Modifier.height(200.dp),
             )
             Spacer(modifier = Modifier.height(20.dp).fillMaxWidth())
             Histogram(
-                Array(255) { Random.nextInt(100) / 100f },
+                distributionState.channelOne,
                 modifier = Modifier.height(200.dp),
                 strokeColor = MaterialTheme.colorScheme.histogramRed,
             )
             Spacer(modifier = Modifier.height(20.dp).fillMaxWidth())
             Histogram(
-                Array(255) { Random.nextInt(100) / 100f },
+                distributionState.channelTwo,
                 modifier = Modifier.height(200.dp),
                 strokeColor = MaterialTheme.colorScheme.histogramGreen,
             )
             Spacer(modifier = Modifier.height(20.dp).fillMaxWidth())
             Histogram(
-                Array(255) { Random.nextInt(100) / 100f },
+                distributionState.channelThree,
                 modifier = Modifier.height(200.dp),
                 strokeColor = MaterialTheme.colorScheme.histogramBlue,
             )
@@ -90,5 +123,23 @@ class AnotherSettingsProvider : SettingsViewProvider {
     @Composable
     override fun configureWindow(window: ComposeWindow) {
         window.isResizable = false
+    }
+}
+
+class BrightnessDistribution(
+    private val initialSize: Int = 255,
+) {
+    val allChannels: Array<Float> = Array(initialSize) { 0f }
+    val channelOne: Array<Float> = Array(initialSize) { 0f }
+    val channelTwo: Array<Float> = Array(initialSize) { 0f }
+    val channelThree: Array<Float> = Array(initialSize) { 0f }
+
+    fun normalize(maxValue: Float) {
+        for (i in 0..<initialSize) {
+            allChannels[i] = allChannels[i] / maxValue
+            channelOne[i] = channelOne[i] / maxValue
+            channelTwo[i] = channelTwo[i] / maxValue
+            channelThree[i] = channelThree[i] / maxValue
+        }
     }
 }

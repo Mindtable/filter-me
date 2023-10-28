@@ -72,8 +72,6 @@ fun PixelData.toBitmap(
 ): Bitmap {
     val byteArray = ByteArray(pixelCount * 4)
 
-    val transform = { x: Float -> (x * 255).toInt().toByte() }
-
     val bb: MutableList<Float> = MutableList(3) { 0f }
     var pixel: MutableList<Float>
 
@@ -110,10 +108,10 @@ fun PixelData.toBitmap(
                 val channelTwo = bb[1]
                 val channelThree = bb[2]
 
-                byteArray[(i * width + j) * 4 + 0] = transform(channelOne)
-                byteArray[(i * width + j) * 4 + 1] = transform(channelTwo)
-                byteArray[(i * width + j) * 4 + 2] = transform(channelThree)
-                byteArray[(i * width + j) * 4 + 3] = transform(1.0f)
+                byteArray[(i * width + j) * 4 + 0] = transformPixelToByte(channelOne)
+                byteArray[(i * width + j) * 4 + 1] = transformPixelToByte(channelTwo)
+                byteArray[(i * width + j) * 4 + 2] = transformPixelToByte(channelThree)
+                byteArray[(i * width + j) * 4 + 3] = transformPixelToByte(1.0f)
             }
         }
     }
@@ -169,4 +167,17 @@ fun PixelData.convertGamma(
     }
 
     return this
+}
+
+fun transformPixelToByte(x: Float) = transformPixelToInt(x).toByte()
+fun transformPixelToInt(x: Float) = ((x * 255).roundToEven() + 256) % 256
+
+fun Float.roundToEven(): Int {
+    val rounded = this.toInt()
+
+    return if (rounded + 1 - this < this - rounded) {
+        rounded + 1
+    } else {
+        rounded
+    }
 }

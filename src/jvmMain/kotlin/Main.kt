@@ -13,7 +13,6 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import ru.itmo.graphics.viewmodel.presentation.view.theme.AppTheme
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ru.itmo.graphics.viewmodel.domain.image.type.FileTypeResolver
 import ru.itmo.graphics.viewmodel.domain.image.type.P5TypeResolver
@@ -24,6 +23,7 @@ import ru.itmo.graphics.viewmodel.presentation.view.main.MenuBarView
 import ru.itmo.graphics.viewmodel.presentation.view.settings.colorpicker.LineSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.gamma.GammaSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.histogram.AnotherSettingsProvider
+import ru.itmo.graphics.viewmodel.presentation.view.theme.AppTheme
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.CloseSettings
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageViewModel
 import ru.itmo.graphics.viewmodel.tools.toBitmap
