@@ -22,6 +22,7 @@ import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.SAVE
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
 import ru.itmo.graphics.viewmodel.tools.convertColorSpace
 import ru.itmo.graphics.viewmodel.tools.convertGamma
+import ru.itmo.graphics.viewmodel.tools.createGradient
 import ru.itmo.graphics.viewmodel.tools.readImageV2
 import ru.itmo.graphics.viewmodel.tools.toBitmap
 import java.io.File
@@ -37,6 +38,17 @@ class ImageViewModel(
 
     fun onEvent(event: ImageEvent) {
         when (event) {
+            ComputeGradient -> {
+                scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                    state.update {
+                        it.copy(
+                            log = "Gradient generated",
+                            pixelData = createGradient(),
+                        )
+                    }
+                }
+            }
+
             DrawingModeSwitch -> {
                 state.update {
                     it.copy(

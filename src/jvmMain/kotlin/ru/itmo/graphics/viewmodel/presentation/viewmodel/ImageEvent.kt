@@ -33,3 +33,4 @@ data object DarkModeSettingSwitch : ImageEvent
 data class UpdateLineSettings(val lineColor: Pixel, val lineOpacity: Float, val lineWidth: Float) : ImageEvent
 data object DrawingModeSwitch : ImageEvent
 data class SendDrawingCoordinates(val coordinates: Coordinates) : ImageEvent
+data object ComputeGradient : ImageEvent

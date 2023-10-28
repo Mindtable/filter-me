@@ -17,6 +17,7 @@ import ru.itmo.graphics.viewmodel.domain.image.colorspace.YCoCgColorSpace
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ApplicationColorSpaceChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ChannelSettingsChanged
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.ComputeGradient
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.DrawingModeSwitch
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageState
@@ -87,6 +88,14 @@ fun FrameWindowScope.MenuBarView(
                 "Enabled",
                 onCheckedChange = { onEvent(DrawingModeSwitch) },
                 checked = state.drawingModeEnable,
+            )
+        }
+        Menu(
+            text = "Dieseling",
+        ) {
+            Item(
+                "Create gradient",
+                onClick = { onEvent(ComputeGradient) },
             )
         }
         Menu(

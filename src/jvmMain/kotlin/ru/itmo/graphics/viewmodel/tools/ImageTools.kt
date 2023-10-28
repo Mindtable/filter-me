@@ -195,3 +195,22 @@ fun Float.roundToEven(): Int {
         rounded
     }
 }
+
+fun createGradient(height: Int = 400, width: Int = 600): PixelData {
+    val step = 1.0f / width
+    val pixelData = PixelData(MutableList(height * width * 3) { 0f }, height, width)
+
+    for (i in 0..<height) {
+        for (j in 0..<width) {
+            val pixel = pixelData.getPixel(i, j)
+
+            val color = step * j
+
+            pixel[0] = color
+            pixel[1] = color
+            pixel[2] = color
+        }
+    }
+
+    return pixelData
+}
