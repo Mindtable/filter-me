@@ -1,5 +1,6 @@
 package ru.itmo.graphics.viewmodel.presentation.viewmodel
 
+import ru.itmo.graphics.viewmodel.domain.Pixel
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
@@ -27,3 +28,5 @@ data class AssignGamma(val newGamma: Float) : ImageEvent
 data class OpenSettings(val settingsType: SettingsType) : ImageEvent
 data object CloseSettings : ImageEvent
 data object DarkModeSettingSwitch : ImageEvent
+
+data class UpdateLineSettings(val lineColor: Pixel, val lineOpacity: Float, val lineWidth: Float) : ImageEvent

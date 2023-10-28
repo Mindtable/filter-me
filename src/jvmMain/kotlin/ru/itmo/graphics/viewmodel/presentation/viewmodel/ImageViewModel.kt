@@ -108,6 +108,27 @@ class ImageViewModel(
                 }
             }
 
+            is UpdateLineSettings -> {
+                if (event.lineOpacity !in 0f..1f) {
+                    onEvent(ImageError(RuntimeException("Line opacity should be in range [0;1]")))
+                    return
+                }
+
+                if (event.lineWidth !in 0f..100f) {
+                    onEvent(ImageError(RuntimeException("Line width should be in range [0;100]")))
+                    return
+                }
+
+                state.update {
+                    it.copy(
+                        lineColor = event.lineColor,
+                        lineOpacity = event.lineOpacity,
+                        lineWidth = event.lineWidth,
+                        log = "Line settings updated",
+                    )
+                }
+            }
+
             is ApplicationColorSpaceChanged -> {
                 scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
                     val newColorSpace = event.colorSpace

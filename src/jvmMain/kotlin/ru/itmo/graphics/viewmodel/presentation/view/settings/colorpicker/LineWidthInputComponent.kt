@@ -32,7 +32,7 @@ fun LineWidthInput(
             unfocusedIndicatorColor = Color.Transparent,
         ),
         trailingIcon = {
-            Text("px", color=MaterialTheme.colorScheme.onSecondaryContainer)
+            Text("px", color = MaterialTheme.colorScheme.onSecondaryContainer)
         },
         singleLine = true,
         placeholder = { Text("Line width in px") },

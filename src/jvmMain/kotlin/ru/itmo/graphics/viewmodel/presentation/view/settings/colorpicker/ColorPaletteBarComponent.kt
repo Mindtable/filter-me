@@ -15,10 +15,10 @@ import com.godaddy.android.colorpicker.HsvColor
 @Composable
 fun ColorPaletteBar(
     modifier: Modifier = Modifier,
-    colors: List<HsvColor>
+    colors: List<HsvColor>,
 ) {
     LazyVerticalGrid(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
         columns = GridCells.Fixed(colors.size),
         modifier = modifier
@@ -29,6 +29,6 @@ fun ColorPaletteBar(
                     drawRect(color.toColor())
                 }
             }
-        }
+        },
     )
 }

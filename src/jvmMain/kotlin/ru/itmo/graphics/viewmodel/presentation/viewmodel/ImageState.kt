@@ -2,6 +2,7 @@ package ru.itmo.graphics.viewmodel.presentation.viewmodel
 
 import org.jetbrains.skia.Bitmap
 import ru.itmo.graphics.viewmodel.domain.ImageModel
+import ru.itmo.graphics.viewmodel.domain.Pixel
 import ru.itmo.graphics.viewmodel.domain.PixelData
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.RgbColorSpace
@@ -26,4 +27,8 @@ data class ImageState(
     val settingsType: SettingsType? = null,
     val imageVersion: Long = 0,
     val isDarkMode: Boolean = true,
+
+    val lineColor: Pixel = Pixel(1f, 0f, 0f),
+    val lineWidth: Float = 1f,
+    val lineOpacity: Float = 1f,
 )
