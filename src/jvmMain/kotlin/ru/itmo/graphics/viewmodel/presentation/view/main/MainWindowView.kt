@@ -19,10 +19,11 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.geometry.Offset
@@ -32,6 +33,8 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.withSave
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -39,6 +42,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import ru.itmo.graphics.viewmodel.domain.Coordinates
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.NONE
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.OPEN
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.SAVE
@@ -49,6 +53,7 @@ import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageState
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.OpeningFileEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.SaveAsEvent
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.SendDrawingCoordinates
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
@@ -56,6 +61,7 @@ import java.lang.Float.min
 
 private val logger = KotlinLogging.logger { }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MainWindowView(
     window: ComposeWindow,
@@ -105,7 +111,13 @@ fun MainWindowView(
                     Canvas(
                         modifier = Modifier.fillMaxWidth()
                             .background(color = MaterialTheme.colorScheme.background)
-                            .fillMaxHeight(0.85f),
+                            .fillMaxHeight(0.85f)
+                            .onPointerEvent(PointerEventType.Press) {
+                                logger.info { it }
+
+                                val position = it.changes.first().position
+                                onEvent(SendDrawingCoordinates(Coordinates(position.x.toInt(), position.y.toInt())))
+                            },
                     ) {
                         image?.let {
                             val scalingCoefficient = min(size.height / image.height, size.width / image.width)

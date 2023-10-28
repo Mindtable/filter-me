@@ -37,6 +37,44 @@ class ImageViewModel(
 
     fun onEvent(event: ImageEvent) {
         when (event) {
+            DrawingModeSwitch -> {
+                state.update {
+                    it.copy(
+                        log = "${if (it.drawingModeEnable) "Finish" else "Start"} drawing",
+                        firstDrawPoint = null,
+                        drawingModeEnable = !it.drawingModeEnable,
+                    )
+                }
+            }
+
+            is SendDrawingCoordinates -> {
+                if (!state.value.drawingModeEnable) return
+
+                if (state.value.firstDrawPoint == null) {
+                    state.update {
+                        it.copy(
+                            log = "Set first point to ${event.coordinates}",
+                            firstDrawPoint = event.coordinates,
+                        )
+                    }
+                } else {
+                    val firstDrawPoint = state.value.firstDrawPoint
+                    val log = "Draw line with coordinates $firstDrawPoint and ${event.coordinates}"
+                    state.update {
+                        it.copy(
+                            firstDrawPoint = null,
+                            log = log,
+                            drawingModeEnable = false,
+                        )
+                    }
+                    scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                        logger.info { log }
+                        // do not forget about mono-channel-mode
+                        // drawLine(start, end, color, pixelData)
+                    }
+                }
+            }
+
             is SaveAsEvent -> {
                 val imageState = state.value
                 logger.info { "onSavedAsButtonClick call with ${imageState.file} parameter" }
@@ -136,9 +174,10 @@ class ImageViewModel(
                         state.update {
                             it.copy(
                                 log = "Colorspace changed to ${newColorSpace.name}",
-                                pixelData = it.pixelData?.convertColorSpace(state.value.colorSpace, newColorSpace),
+                                pixelData = it.pixelData?.convertColorSpace(it.colorSpace, newColorSpace),
                                 colorSpace = newColorSpace,
                                 imageVersion = it.imageVersion + 1,
+                                lineColor = it.lineColor.convertColorSpace(it.colorSpace, newColorSpace),
                             )
                         }
                         logger.info { "Color space change success with imageVersion ${state.value.imageVersion}" }

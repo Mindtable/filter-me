@@ -17,6 +17,7 @@ import ru.itmo.graphics.viewmodel.domain.image.colorspace.YCoCgColorSpace
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ApplicationColorSpaceChanged
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ChannelSettingsChanged
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.DrawingModeSwitch
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageState
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.MonochromeModeChanged
@@ -78,6 +79,15 @@ fun FrameWindowScope.MenuBarView(
             ColorSpaceCheckbox(YCoCgColorSpace, state.colorSpace, onEvent)
             ColorSpaceCheckbox(YCbCr601ColorSpace, state.colorSpace, onEvent)
             ColorSpaceCheckbox(YCbCr709ColorSpace, state.colorSpace, onEvent)
+        }
+        Menu(
+            text = "Drawing",
+        ) {
+            CheckboxItem(
+                "Enabled",
+                onCheckedChange = { onEvent(DrawingModeSwitch) },
+                checked = state.drawingModeEnable,
+            )
         }
         Menu(
             text = "Settings",

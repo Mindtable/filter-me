@@ -1,6 +1,7 @@
 package ru.itmo.graphics.viewmodel.presentation.viewmodel
 
 import org.jetbrains.skia.Bitmap
+import ru.itmo.graphics.viewmodel.domain.Coordinates
 import ru.itmo.graphics.viewmodel.domain.ImageModel
 import ru.itmo.graphics.viewmodel.domain.Pixel
 import ru.itmo.graphics.viewmodel.domain.PixelData
@@ -31,4 +32,6 @@ data class ImageState(
     val lineColor: Pixel = Pixel(1f, 0f, 0f),
     val lineWidth: Float = 1f,
     val lineOpacity: Float = 1f,
+    val drawingModeEnable: Boolean = false,
+    val firstDrawPoint: Coordinates? = null,
 )

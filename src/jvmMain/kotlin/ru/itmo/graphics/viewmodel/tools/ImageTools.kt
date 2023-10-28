@@ -8,7 +8,10 @@ import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.ColorType.RGB_888X
 import org.jetbrains.skia.ImageInfo
 import ru.itmo.graphics.viewmodel.domain.ImageModel
+import ru.itmo.graphics.viewmodel.domain.Pixel
 import ru.itmo.graphics.viewmodel.domain.PixelData
+import ru.itmo.graphics.viewmodel.domain.asBb
+import ru.itmo.graphics.viewmodel.domain.asPixel
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.viewmodel.domain.image.gamma.GammaConversion
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
@@ -146,6 +149,17 @@ fun PixelData.convertColorSpace(
     }
 
     return this
+}
+
+fun Pixel.convertColorSpace(
+    oldColorSpace: ApplicationColorSpace,
+    newColorSpace: ApplicationColorSpace,
+): Pixel {
+    val asBb = this.asBb()
+    oldColorSpace.toRgb(asBb)
+    newColorSpace.fromRgb(asBb)
+
+    return asBb.asPixel()
 }
 
 fun PixelData.convertGamma(
