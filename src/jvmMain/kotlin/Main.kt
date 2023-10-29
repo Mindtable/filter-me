@@ -21,6 +21,7 @@ import ru.itmo.graphics.viewmodel.domain.image.type.SkiaSupportedTypeResolver
 import ru.itmo.graphics.viewmodel.presentation.view.main.MainWindowView
 import ru.itmo.graphics.viewmodel.presentation.view.main.MenuBarView
 import ru.itmo.graphics.viewmodel.presentation.view.settings.colorpicker.LineSettingsProvider
+import ru.itmo.graphics.viewmodel.presentation.view.settings.dithering.DitheringSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.gamma.GammaSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.histogram.AnotherSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.theme.AppTheme
@@ -53,6 +54,7 @@ fun main() {
                 GammaSettingsProvider(),
                 AnotherSettingsProvider(),
                 LineSettingsProvider(),
+                DitheringSettingsProvider(),
             ).associateBy { it.type }
         }
 

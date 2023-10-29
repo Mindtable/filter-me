@@ -32,6 +32,7 @@ import ru.itmo.graphics.viewmodel.domain.asBb
 import ru.itmo.graphics.viewmodel.domain.asComposeColor
 import ru.itmo.graphics.viewmodel.domain.asPixel
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.HsvColorSpace
+import ru.itmo.graphics.viewmodel.presentation.view.settings.core.DescriptionText
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsViewProvider
@@ -96,9 +97,9 @@ private fun LineSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) {
             .padding(10.dp),
     ) {
         DescriptionText(Modifier, "Line width")
-        LineWidthInput(Modifier, textToInput, textUpdate)
+        LineSettingInput(Modifier, textToInput, "Line width in px", "px", textUpdate)
         DescriptionText(Modifier, "Line opacity")
-        LineWidthInput(
+        LineSettingInput(
             Modifier.onKeyEvent { event ->
                 if (event.type == KeyEventType.KeyUp && event.key == Key.Enter) {
                     log.info { "Event with enter processing" }
@@ -120,6 +121,7 @@ private fun LineSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) {
                 false
             },
             lineOpacityText,
+            placeholder = "Line opacity value in [0;1]",
         ) { lineOpacityText = it }
         DescriptionText(Modifier, "Line color")
         ColorAlphaPicker(Modifier, colorUpdate, colorPickerColor)
@@ -141,8 +143,7 @@ private fun LineSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp)
-                .align(Alignment.End),
+                .padding(10.dp),
         ) {
             Button(
                 modifier = Modifier

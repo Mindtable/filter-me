@@ -7,4 +7,5 @@ enum class ImageChannel(
     CHANNEL_TWO("Channel two"),
     CHANNEL_THREE("Channel three"),
     ALL("All channels"),
+    ;
 }

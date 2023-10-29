@@ -6,6 +6,7 @@ enum class FileDialogType {
     NONE,
     OPEN,
     SAVE,
+    ;
 }
 
 fun FileDialogType.isOpen() = this != NONE

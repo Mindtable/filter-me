@@ -1,6 +1,8 @@
 package ru.itmo.graphics.viewmodel.presentation.view.main
 
-enum class Actions(private val actionString: String) {
+enum class Actions(
+    private val actionString: String,
+) {
     OPEN("Open"),
     SAVE("Save"),
     SAVEAS("Save as"),

@@ -19,9 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
+import ru.itmo.graphics.viewmodel.presentation.view.settings.core.DescriptionText
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsViewProvider
 import ru.itmo.graphics.viewmodel.presentation.view.theme.histogramBlue
@@ -86,14 +86,8 @@ class AnotherSettingsProvider : SettingsViewProvider {
                     text = "Dark mode setting",
                 )
             }
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
+            DescriptionText(
                 text = "Histogram view of brightness distribution",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center,
             )
             Histogram(
                 distributionState.allChannels,

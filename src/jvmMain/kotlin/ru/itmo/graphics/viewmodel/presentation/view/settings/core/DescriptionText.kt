@@ -1,4 +1,4 @@
-package ru.itmo.graphics.viewmodel.presentation.view.settings.colorpicker
+package ru.itmo.graphics.viewmodel.presentation.view.settings.core
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding

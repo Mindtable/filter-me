@@ -179,6 +179,17 @@ class ImageViewModel(
                 }
             }
 
+            is UpdateDitheringSettings -> {
+                state.update{
+                    it.copy(
+                        ditheringAlgo = event.ditheringAlgo,
+                        bitness = event.bitness,
+                        isPreviewMode = event.preview,
+                        log = "Dithering settings updated",
+                    )
+                }
+            }
+
             is ApplicationColorSpaceChanged -> {
                 scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
                     val newColorSpace = event.colorSpace

@@ -13,9 +13,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LineWidthInput(
+fun LineSettingInput(
     modifier: Modifier = Modifier,
     textToInput: String,
+    placeholder: String = "",
+    units: String = "",
     textUpdate: (String) -> Unit,
 ) {
     TextField(
@@ -32,9 +34,9 @@ fun LineWidthInput(
             unfocusedIndicatorColor = Color.Transparent,
         ),
         trailingIcon = {
-            Text("px", color = MaterialTheme.colorScheme.onSecondaryContainer)
+            Text(units, color = MaterialTheme.colorScheme.onSecondaryContainer)
         },
         singleLine = true,
-        placeholder = { Text("Line width in px") },
+        placeholder = { Text(placeholder) },
     )
 }
