@@ -10,4 +10,10 @@ interface ApplicationColorSpace {
     fun toRgb(bb: MutableList<Float>)
 
     fun separateChannel(bb: MutableList<Float>, channel: ImageChannel)
+
+    fun convertedToRgb(bb: MutableList<Float>, block: (pixel: MutableList<Float>) -> Unit) {
+        toRgb(bb)
+        block(bb)
+        fromRgb(bb)
+    }
 }

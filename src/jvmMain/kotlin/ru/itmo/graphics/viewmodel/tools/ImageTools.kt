@@ -15,6 +15,7 @@ import ru.itmo.graphics.viewmodel.domain.asPixel
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.viewmodel.domain.image.gamma.GammaConversion
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
+import kotlin.math.roundToInt
 import kotlin.system.measureTimeMillis
 
 private val log = KotlinLogging.logger { }
@@ -73,50 +74,10 @@ fun PixelData.toBitmap(
     isMonochromeMode: Boolean,
     gamma: Float,
 ): Bitmap {
-    val byteArray = ByteArray(pixelCount * 4)
-
-    val bb: MutableList<Float> = MutableList(3) { 0f }
-    var pixel: MutableList<Float>
+    val byteArray: ByteArray
 
     val timeInMillis = measureTimeMillis {
-        for (i in 0..<height) {
-            for (j in 0..<width) {
-                pixel = getPixel(i, j)
-                bb[0] = pixel[0]
-                bb[1] = pixel[1]
-                bb[2] = pixel[2]
-
-                if (isMonochromeMode) {
-                    if (channel == ImageChannel.CHANNEL_ONE) {
-                        bb[1] = bb[0]
-                        bb[2] = bb[0]
-                    } else if (channel == ImageChannel.CHANNEL_TWO) {
-                        bb[0] = bb[1]
-                        bb[2] = bb[1]
-                    } else if (channel == ImageChannel.CHANNEL_THREE) {
-                        bb[0] = bb[2]
-                        bb[1] = bb[2]
-                    }
-                } else {
-                    if (channel != ImageChannel.ALL) {
-                        colorSpace.separateChannel(bb, channel)
-                    }
-
-                    colorSpace.toRgb(bb)
-                }
-
-                GammaConversion.applyGamma(bb, gamma)
-
-                val channelOne = bb[0]
-                val channelTwo = bb[1]
-                val channelThree = bb[2]
-
-                byteArray[(i * width + j) * 4 + 0] = transformPixelToByte(channelOne)
-                byteArray[(i * width + j) * 4 + 1] = transformPixelToByte(channelTwo)
-                byteArray[(i * width + j) * 4 + 2] = transformPixelToByte(channelThree)
-                byteArray[(i * width + j) * 4 + 3] = transformPixelToByte(1.0f)
-            }
-        }
+        byteArray = asByteArray(isMonochromeMode, channel, colorSpace, gamma)
     }
 
     log.info { "Time spent to draw $timeInMillis" }
@@ -132,6 +93,58 @@ fun PixelData.toBitmap(
     bitmap.installPixels(byteArray)
 
     return bitmap
+}
+
+fun PixelData.asByteArray(
+    isMonochromeMode: Boolean,
+    channel: ImageChannel,
+    colorSpace: ApplicationColorSpace,
+    gamma: Float,
+): ByteArray {
+    val byteArray = ByteArray(pixelCount * 4)
+
+    val bb: MutableList<Float> = MutableList(3) { 0f }
+    var pixel: MutableList<Float>
+
+    for (i in 0..<height) {
+        for (j in 0..<width) {
+            pixel = getPixel(i, j)
+            bb[0] = pixel[0]
+            bb[1] = pixel[1]
+            bb[2] = pixel[2]
+
+            if (isMonochromeMode) {
+                if (channel == ImageChannel.CHANNEL_ONE) {
+                    bb[1] = bb[0]
+                    bb[2] = bb[0]
+                } else if (channel == ImageChannel.CHANNEL_TWO) {
+                    bb[0] = bb[1]
+                    bb[2] = bb[1]
+                } else if (channel == ImageChannel.CHANNEL_THREE) {
+                    bb[0] = bb[2]
+                    bb[1] = bb[2]
+                }
+            } else {
+                if (channel != ImageChannel.ALL) {
+                    colorSpace.separateChannel(bb, channel)
+                }
+
+                colorSpace.toRgb(bb)
+            }
+
+            GammaConversion.applyGamma(bb, gamma)
+
+            val channelOne = bb[0]
+            val channelTwo = bb[1]
+            val channelThree = bb[2]
+
+            byteArray[(i * width + j) * 4 + 0] = transformPixelToByte(channelOne)
+            byteArray[(i * width + j) * 4 + 1] = transformPixelToByte(channelTwo)
+            byteArray[(i * width + j) * 4 + 2] = transformPixelToByte(channelThree)
+            byteArray[(i * width + j) * 4 + 3] = transformPixelToByte(1.0f)
+        }
+    }
+    return byteArray
 }
 
 fun PixelData.convertColorSpace(
@@ -171,11 +184,23 @@ fun PixelData.convertGamma(
     for (i in 0..<height) {
         for (j in 0..<width) {
             pixel = getPixel(i, j)
-            GammaConversion.applyGamma(pixel, oldGamma)
+//            GammaConversion.applyGamma(pixel, oldGamma)
+//            if (newGamma == 0f) {
+//                GammaConversion.applyGamma(pixel, 1 / 2.4f)
+//            } else {
+//                GammaConversion.applyGamma(pixel, 1 / newGamma)
+//            }
+
             if (newGamma == 0f) {
-                GammaConversion.applyGamma(pixel, 1 / 2.4f)
+                if (oldGamma != 0f) {
+                    GammaConversion.applyGamma(pixel, oldGamma / 2.4f)
+                }
             } else {
-                GammaConversion.applyGamma(pixel, 1 / newGamma)
+                if (oldGamma != 0f) {
+                    GammaConversion.applyGamma(pixel, oldGamma / newGamma)
+                } else {
+                    GammaConversion.applyGamma(pixel, 2.4f / newGamma)
+                }
             }
         }
     }
@@ -214,3 +239,22 @@ fun createGradient(height: Int = 400, width: Int = 600): PixelData {
 
     return pixelData
 }
+
+fun quantize(pixel: Pixel, levelsCount: Int): Pixel {
+    val bb = pixel.asBb()
+    quantizeInPlace(bb, levelsCount)
+
+    return bb.asPixel()
+}
+
+fun quantizeInPlace(bb: MutableList<Float>, levelsCount: Int) {
+    val fLevels = (1 shl levelsCount - 1).toFloat()
+
+    for (i in bb.indices) {
+        val t1 = bb[i] * fLevels
+        val t2 = t1.roundToInt() / fLevels
+        bb[i] = clamp(t2)
+    }
+}
+
+fun clamp(value: Float): Float = value.coerceIn(0.0f, 1.0f)

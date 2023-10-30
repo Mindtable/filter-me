@@ -16,16 +16,20 @@ import ru.itmo.graphics.viewmodel.domain.ImageModel
 import ru.itmo.graphics.viewmodel.domain.PixelData
 import ru.itmo.graphics.viewmodel.domain.image.type.FileTypeResolver
 import ru.itmo.graphics.viewmodel.domain.model.image.PnmP5
+import ru.itmo.graphics.viewmodel.domain.model.image.PnmP6
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.NONE
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.OPEN
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.SAVE
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
+import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
+import ru.itmo.graphics.viewmodel.tools.asByteArray
 import ru.itmo.graphics.viewmodel.tools.convertColorSpace
 import ru.itmo.graphics.viewmodel.tools.convertGamma
 import ru.itmo.graphics.viewmodel.tools.createGradient
 import ru.itmo.graphics.viewmodel.tools.readImageV2
 import ru.itmo.graphics.viewmodel.tools.toBitmap
 import java.io.File
+import java.time.Instant
 import kotlin.math.max
 
 private val logger = KotlinLogging.logger { }
@@ -41,9 +45,22 @@ class ImageViewModel(
             ComputeGradient -> {
                 scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
                     state.update {
+                        val pixelData = createGradient()
+                        val imageModel = ImageModel(
+                            file = File("/${Instant.now()}"),
+                            type = PnmP6,
+                            data = pixelData.asByteArray(
+                                state.value.isMonochromeMode,
+                                state.value.channel,
+                                state.value.colorSpace,
+                                state.value.gamma,
+                            ),
+                            bitmap = null,
+                        )
                         it.copy(
                             log = "Gradient generated",
-                            pixelData = createGradient(),
+                            pixelData = pixelData,
+                            imageModel = imageModel,
                         )
                     }
                 }
@@ -179,14 +196,60 @@ class ImageViewModel(
                 }
             }
 
-            is UpdateDitheringSettings -> {
-                state.update{
-                    it.copy(
-                        ditheringAlgo = event.ditheringAlgo,
-                        bitness = event.bitness,
-                        isPreviewMode = event.preview,
-                        log = "Dithering settings updated",
+            is ApplyDithering -> {
+                scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                    val pixelData = when (event.preview) {
+                        null -> {
+                            logger.info { "Change real image: preview disabled" }
+
+                            state.value.pixelData
+                        }
+
+                        true -> {
+                            logger.info { "Compute preview" }
+
+                            state.value.pixelData?.copy()
+                        }
+
+                        false -> {
+                            logger.info { "Disable preview" }
+
+                            state.update {
+                                it.copy(
+                                    previewPixelData = null,
+                                    imageVersion = it.imageVersion + if (it.previewPixelData != null) 1 else 0,
+                                )
+                            }
+                            null
+                        }
+                    } ?: return@launch
+
+                    logger.info { event }
+                    event.ditheringAlgo.ditheringAlgorithm.applyInPlace(
+                        pixelData,
+                        state.value.colorSpace,
+                        event.bitness,
+                        state.value.isMonochromeMode,
                     )
+
+                    if (event.preview == true) {
+                        state.update {
+                            it.copy(
+                                log = "Image dithered",
+                                previewPixelData = pixelData,
+                                imageVersion = it.imageVersion + 1,
+                            )
+                        }
+                    } else {
+                        state.update {
+                            it.copy(
+                                log = "Image dithered",
+                                previewPixelData = null,
+                                pixelData = pixelData,
+                                imageVersion = it.imageVersion + 1,
+                            )
+                        }
+                    }
                 }
             }
 
@@ -218,6 +281,7 @@ class ImageViewModel(
                     } else {
                         0f
                     }
+                    logger.info { "Convert gamma from ${state.value.gamma} to $newGamma" }
                     state.update {
                         it.copy(
                             log = "Image gamma converted to $newGamma",
@@ -366,9 +430,17 @@ class ImageViewModel(
 
             CloseSettings -> {
                 state.update {
-                    it.copy(
-                        settingsType = null,
-                    )
+                    if (it.settingsType == SettingsType.DITHERING) {
+                        it.copy(
+                            previewPixelData = null,
+                            settingsType = null,
+                            imageVersion = it.imageVersion + 1,
+                        )
+                    } else {
+                        it.copy(
+                            settingsType = null,
+                        )
+                    }
                 }
             }
 

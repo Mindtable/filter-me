@@ -21,6 +21,8 @@ class PixelData(
             log.info { "$width $height" }
         }.getOrThrow()
     }
+
+    fun copy(): PixelData = PixelData(data.toMutableList(), height, width)
 }
 
 data class Pixel(

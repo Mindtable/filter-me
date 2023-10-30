@@ -62,8 +62,7 @@ fun main() {
             onCloseRequest = ::exitApplication,
             title = "Nascar95 GUI",
             state = rememberWindowState(width = Dp.Unspecified, height = Dp.Unspecified),
-            alwaysOnTop = state.settingsType == null,
-
+            alwaysOnTop = false,
         ) {
             val imageBitmap by remember(
                 state.pixelData,
@@ -74,7 +73,7 @@ fun main() {
                 state.imageVersion,
             ) {
                 mutableStateOf(
-                    state.pixelData?.toBitmap(
+                    (state.previewPixelData ?: state.pixelData)?.toBitmap(
                         state.colorSpace,
                         state.channel,
                         state.isMonochromeMode,

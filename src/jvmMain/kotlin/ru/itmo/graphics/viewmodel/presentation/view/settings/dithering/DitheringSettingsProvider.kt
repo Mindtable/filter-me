@@ -22,23 +22,24 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
 import ru.itmo.graphics.viewmodel.presentation.view.main.DitheringAlgo
+import ru.itmo.graphics.viewmodel.presentation.view.settings.core.DescriptionText
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsViewProvider
+import ru.itmo.graphics.viewmodel.presentation.viewmodel.ApplyDithering
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageEvent
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.style.TextAlign
-import ru.itmo.graphics.viewmodel.presentation.view.settings.core.DescriptionText
-import ru.itmo.graphics.viewmodel.presentation.viewmodel.UpdateDitheringSettings
 import kotlin.math.roundToInt
 
 private val log = KotlinLogging.logger { }
@@ -61,14 +62,14 @@ class DitheringSettingsProvider : SettingsViewProvider {
 
 @Composable
 private fun DitheringSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) {
-    var selectedAlgo by remember {
-        mutableStateOf(state.ditheringAlgo)
+    var selectedAlgo by rememberSaveable {
+        mutableStateOf(DitheringAlgo.NONE)
     }
-    var bitness by remember {
-        mutableStateOf(state.bitness.toFloat())
+    var bitness by rememberSaveable {
+        mutableStateOf(1f)
     }
     var previewToggled by remember {
-        mutableStateOf(state.isPreviewMode)
+        mutableStateOf(state.previewPixelData != null)
     }
     Column(
         modifier = Modifier
@@ -111,7 +112,17 @@ private fun DitheringSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) 
                 DitheringAlgo.entries.forEach { algo ->
                     DropdownMenuItem(
                         text = { DescriptionText(text = algo.text) },
-                        onClick = { selectedAlgo = algo },
+                        onClick = {
+                            selectedAlgo = algo
+                            expanded = false
+                            onEvent(
+                                ApplyDithering(
+                                    ditheringAlgo = selectedAlgo,
+                                    bitness = bitness.roundToInt(),
+                                    preview = previewToggled,
+                                ),
+                            )
+                        },
                     )
                 }
             }
@@ -128,7 +139,16 @@ private fun DitheringSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) 
                 DescriptionText(text = "Dithering bitness: ${bitness.roundToInt()}-bit")
                 Slider(
                     value = bitness,
-                    onValueChange = { bitness = it },
+                    onValueChange = {
+                        bitness = it
+                        onEvent(
+                            ApplyDithering(
+                                ditheringAlgo = selectedAlgo,
+                                bitness = bitness.roundToInt(),
+                                preview = previewToggled,
+                            ),
+                        )
+                    },
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.secondary,
                         activeTrackColor = MaterialTheme.colorScheme.secondary,
@@ -156,7 +176,16 @@ private fun DitheringSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) 
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.2f),
-                onCheckedChange = { previewToggled = it },
+                onCheckedChange = {
+                    previewToggled = it
+                    onEvent(
+                        ApplyDithering(
+                            ditheringAlgo = selectedAlgo,
+                            bitness = bitness.roundToInt(),
+                            preview = previewToggled,
+                        ),
+                    )
+                },
             )
         }
         Row(
@@ -170,11 +199,11 @@ private fun DitheringSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) 
                 onClick = {
                     val bitnessValue = bitness.roundToInt()
                     onEvent(
-                        UpdateDitheringSettings(
+                        ApplyDithering(
                             ditheringAlgo = selectedAlgo,
                             bitness = bitnessValue,
-                            preview = previewToggled,
-                        )
+                            preview = null,
+                        ),
                     )
                     log.info { "Dithering settings changed to {algo: $selectedAlgo, bitness: $bitnessValue, preview: $previewToggled}" }
                 },

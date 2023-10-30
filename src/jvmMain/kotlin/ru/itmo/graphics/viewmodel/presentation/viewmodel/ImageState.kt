@@ -7,7 +7,6 @@ import ru.itmo.graphics.viewmodel.domain.Pixel
 import ru.itmo.graphics.viewmodel.domain.PixelData
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.RgbColorSpace
-import ru.itmo.graphics.viewmodel.presentation.view.main.DitheringAlgo
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.NONE
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
@@ -25,9 +24,6 @@ data class ImageState(
     val pixelData: PixelData? = null,
     val channel: ImageChannel = ImageChannel.ALL,
     val gamma: Float = 0f,
-    val isPreviewMode: Boolean = false,
-    val ditheringAlgo: DitheringAlgo = DitheringAlgo.NONE,
-    val bitness: Int = 1,
 
     val settingsType: SettingsType? = null,
     val imageVersion: Long = 0,
@@ -38,4 +34,6 @@ data class ImageState(
     val lineOpacity: Float = 1f,
     val drawingModeEnable: Boolean = false,
     val firstDrawPoint: Coordinates? = null,
+
+    val previewPixelData: PixelData? = null,
 )

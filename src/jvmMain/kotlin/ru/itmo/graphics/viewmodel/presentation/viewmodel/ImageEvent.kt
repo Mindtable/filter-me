@@ -32,7 +32,12 @@ data object CloseSettings : ImageEvent
 data object DarkModeSettingSwitch : ImageEvent
 
 data class UpdateLineSettings(val lineColor: Pixel, val lineOpacity: Float, val lineWidth: Float) : ImageEvent
-data class UpdateDitheringSettings(val ditheringAlgo: DitheringAlgo, val bitness: Int, val preview: Boolean) : ImageEvent
+data class ApplyDithering(
+    val ditheringAlgo: DitheringAlgo,
+    val bitness: Int,
+    val preview: Boolean? = null,
+) : ImageEvent
+
 data object DrawingModeSwitch : ImageEvent
 data class SendDrawingCoordinates(val coordinates: Coordinates) : ImageEvent
 data object ComputeGradient : ImageEvent
