@@ -22,7 +22,10 @@ import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.OPEN
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.SAVE
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
+import ru.itmo.graphics.viewmodel.presentation.view.settings.histogram.BrightnessDistribution
+import ru.itmo.graphics.viewmodel.presentation.view.settings.histogram.getDistribution
 import ru.itmo.graphics.viewmodel.tools.asByteArray
+import ru.itmo.graphics.viewmodel.tools.autoCorrect
 import ru.itmo.graphics.viewmodel.tools.convertColorSpace
 import ru.itmo.graphics.viewmodel.tools.convertGamma
 import ru.itmo.graphics.viewmodel.tools.createGradient
@@ -33,6 +36,7 @@ import ru.itmo.graphics.viewmodel.tools.toBitmap
 import java.io.File
 import java.time.Instant
 import kotlin.math.max
+import kotlin.system.measureTimeMillis
 
 private val logger = KotlinLogging.logger { }
 
@@ -44,6 +48,25 @@ class ImageViewModel(
 
     fun onEvent(event: ImageEvent) {
         when (event) {
+            is AutoCorrect -> {
+                scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                    val pixelData = state.value.pixelData ?: return@launch
+                    val distribution: BrightnessDistribution
+
+                    measureTimeMillis { distribution = pixelData.getDistribution(state.value.colorSpace) }
+                        .also { logger.info { "Distribution calculation took $it ms" } }
+
+                    autoCorrect(pixelData, distribution, event.coefficient, state.value.channel)
+
+                    state.update {
+                        it.copy(
+                            log = "Autocorrection finished",
+                            imageVersion = it.imageVersion + 1,
+                        )
+                    }
+                }
+            }
+
             ComputeGradient -> {
                 scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
                     state.update {

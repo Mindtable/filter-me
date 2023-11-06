@@ -41,3 +41,4 @@ data class ApplyDithering(
 data object DrawingModeSwitch : ImageEvent
 data class SendDrawingCoordinates(val coordinates: Coordinates) : ImageEvent
 data object ComputeGradient : ImageEvent
+data class AutoCorrect(val coefficient: Float) : ImageEvent

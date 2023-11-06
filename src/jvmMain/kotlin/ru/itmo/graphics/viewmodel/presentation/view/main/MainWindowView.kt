@@ -191,9 +191,7 @@ fun MainWindowView(
                         }
                     }
                 },
-            ) {
-                logger.info { "Scaffold redrawn" }
-            }
+            ) {}
         }
     }
 }

@@ -20,6 +20,7 @@ import ru.itmo.graphics.viewmodel.domain.image.type.P6TypeResolver
 import ru.itmo.graphics.viewmodel.domain.image.type.SkiaSupportedTypeResolver
 import ru.itmo.graphics.viewmodel.presentation.view.main.MainWindowView
 import ru.itmo.graphics.viewmodel.presentation.view.main.MenuBarView
+import ru.itmo.graphics.viewmodel.presentation.view.settings.autocorrection.AutoCorrectionSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.colorpicker.LineSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.dithering.DitheringSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.gamma.GammaSettingsProvider
@@ -55,6 +56,7 @@ fun main() {
                 AnotherSettingsProvider(),
                 LineSettingsProvider(),
                 DitheringSettingsProvider(),
+                AutoCorrectionSettingsProvider(),
             ).associateBy { it.type }
         }
 

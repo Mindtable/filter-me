@@ -8,5 +8,5 @@ enum class SettingsType(
     HISTOGRAM("Histogram", "Histogram image view"),
     WIDTHCOLORPICKER("Line Settings", "Line settings"),
     DITHERING("Dithering", "Dithering settings"),
-    ;
+    AUTOCORRECTION("AutoCorrection", "Autocorrection settings"),
 }

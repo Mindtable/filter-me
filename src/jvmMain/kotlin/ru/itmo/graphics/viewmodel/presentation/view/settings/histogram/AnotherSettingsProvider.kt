@@ -21,6 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
+import ru.itmo.graphics.viewmodel.domain.PixelData
+import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
+import ru.itmo.graphics.viewmodel.domain.image.colorspace.YCbCr601ColorSpace
+import ru.itmo.graphics.viewmodel.domain.image.colorspace.YCbCr709ColorSpace
+import ru.itmo.graphics.viewmodel.domain.image.colorspace.YCoCgColorSpace
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.DescriptionText
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsViewProvider
@@ -46,27 +51,12 @@ class AnotherSettingsProvider : SettingsViewProvider {
         LaunchedEffect(state.imageVersion, state.colorSpace) {
             log.info { "Launch histogram calculation with imageVersion ${state.imageVersion}" }
             val pixelData = state.pixelData ?: return@LaunchedEffect
-            val distribution = BrightnessDistribution(256)
 
-            measureTimeMillis {
-                for (i in 0..<pixelData.height) {
-                    for (j in 0..<pixelData.width) {
-                        val pixel = pixelData.getPixel(i, j)
-                        val allBrightness = transformPixelToInt(pixel.sum() / 3)
+            val distribution: BrightnessDistribution
+            measureTimeMillis { distribution = pixelData.getDistribution(state.colorSpace) }
+                .also { log.info { "Distribution calculation took $it ms" } }
 
-                        val channelOneBrightness = transformPixelToInt(pixel[0])
-                        val channelTwoBrightness = transformPixelToInt(pixel[1])
-                        val channelThreeBrightness = transformPixelToInt(pixel[2])
-
-                        distribution.allChannels[allBrightness]++
-                        distribution.channelOne[channelOneBrightness]++
-                        distribution.channelTwo[channelTwoBrightness]++
-                        distribution.channelThree[channelThreeBrightness]++
-                    }
-                }
-
-                distributionState = distribution
-            }.also { log.info { "Histogram calculation took $it ms" } }
+            distributionState = distribution
         }
 
         Column(
@@ -136,4 +126,31 @@ class BrightnessDistribution(
             channelThree[i] = channelThree[i] / maxValue
         }
     }
+}
+
+fun PixelData.getDistribution(colorSpace: ApplicationColorSpace): BrightnessDistribution {
+    val pixelData = this
+    val distribution = BrightnessDistribution(256)
+    val kostyl = colorSpace.isShiftNeeded()
+    pixelData.consumeWithEachPixel { pixel ->
+        val allBrightness = transformPixelToInt(pixel.sum() / 3 + if (kostyl) 1f / 3 else 0f)
+
+        val channelOneBrightness = transformPixelToInt(pixel[0])
+        val channelTwoBrightness = transformPixelToInt(pixel[1] + if (kostyl) 0.5f else 0f)
+        val channelThreeBrightness = transformPixelToInt(pixel[2] + if (kostyl) 0.5f else 0f)
+
+        distribution.allChannels[allBrightness]++
+        distribution.channelOne[channelOneBrightness]++
+        distribution.channelTwo[channelTwoBrightness]++
+        distribution.channelThree[channelThreeBrightness]++
+    }
+
+    distribution.normalize(pixelData.width * pixelData.height.toFloat())
+
+    return distribution
+}
+
+fun ApplicationColorSpace.isShiftNeeded(): Boolean = when (this) {
+    is YCoCgColorSpace, YCbCr709ColorSpace, YCbCr601ColorSpace -> true
+    else -> false
 }

@@ -24,6 +24,15 @@ class PixelData(
     }
 
     fun copy(): PixelData = PixelData(data.toMutableList(), height, width)
+
+    fun consumeWithEachPixel(block: (MutableList<Float>) -> Unit) {
+        for (i in 0..<height) {
+            for (j in 0..<width) {
+                val pixel = getPixel(i, j)
+                block(pixel)
+            }
+        }
+    }
 }
 
 data class Pixel(
