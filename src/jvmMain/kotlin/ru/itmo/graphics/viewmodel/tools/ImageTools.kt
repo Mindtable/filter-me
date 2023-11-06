@@ -240,13 +240,6 @@ fun createGradient(height: Int = 400, width: Int = 600): PixelData {
     return pixelData
 }
 
-fun quantize(pixel: Pixel, levelsCount: Int): Pixel {
-    val bb = pixel.asBb()
-    quantizeInPlace(bb, levelsCount)
-
-    return bb.asPixel()
-}
-
 fun quantizeInPlace(bb: MutableList<Float>, levelsCount: Int) {
     val fLevels = (1 shl levelsCount - 1).toFloat()
 
@@ -258,3 +251,16 @@ fun quantizeInPlace(bb: MutableList<Float>, levelsCount: Int) {
 }
 
 fun clamp(value: Float): Float = value.coerceIn(0.0f, 1.0f)
+
+fun drawInPlace(pixelData: PixelData, x: Int, y: Int, color: List<Float>, brightness: Float) {
+    if (x !in 0..<pixelData.width) return
+    if (y !in 0..<pixelData.height) return
+
+    if (brightness !in 0f..1f) {
+        log.info { "KEK! $x $y $color $brightness" }
+    }
+    val pixel = pixelData.getPixel(y, x) // kostyl
+    for (n in pixel.indices) {
+        pixel[n] = clamp(pixel[n] * (1 - brightness) + color[n] * brightness)
+    }
+}

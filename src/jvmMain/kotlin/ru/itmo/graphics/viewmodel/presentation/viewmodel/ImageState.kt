@@ -30,7 +30,7 @@ data class ImageState(
     val isDarkMode: Boolean = true,
 
     val lineColor: Pixel = Pixel(1f, 0f, 0f),
-    val lineWidth: Float = 1f,
+    val lineWidth: Float = 5f,
     val lineOpacity: Float = 1f,
     val drawingModeEnable: Boolean = false,
     val firstDrawPoint: Coordinates? = null,

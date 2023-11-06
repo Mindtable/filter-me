@@ -58,6 +58,7 @@ import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 import java.lang.Float.min
+import kotlin.math.roundToInt
 
 private val logger = KotlinLogging.logger { }
 
@@ -113,10 +114,27 @@ fun MainWindowView(
                             .background(color = MaterialTheme.colorScheme.background)
                             .fillMaxHeight(0.85f)
                             .onPointerEvent(PointerEventType.Press) {
-                                logger.info { it }
-
                                 val position = it.changes.first().position
-                                onEvent(SendDrawingCoordinates(Coordinates(position.x.toInt(), position.y.toInt())))
+                                image ?: return@onPointerEvent
+                                val scalingCoefficient = min(
+                                    size.height.toFloat() / image.height,
+                                    size.width.toFloat() / image.width,
+                                )
+                                logger.info {
+                                    Coordinates(
+                                        (position.x.toInt() / scalingCoefficient).roundToInt(),
+                                        (position.y.toInt() / scalingCoefficient).roundToInt(),
+                                    )
+                                }
+
+                                onEvent(
+                                    SendDrawingCoordinates(
+                                        Coordinates(
+                                            (position.x.toInt() / scalingCoefficient).roundToInt(),
+                                            (position.y.toInt() / scalingCoefficient).roundToInt(),
+                                        ),
+                                    ),
+                                )
                             },
                     ) {
                         image?.let {
@@ -127,7 +145,6 @@ fun MainWindowView(
                                 pivot = Offset.Zero,
                             ) {
                                 drawIntoCanvas {
-                                    logger.info { "Canvas redrawn" }
                                     it.withSave {
                                         val paint = Paint()
                                         paint.filterQuality = FilterQuality.None

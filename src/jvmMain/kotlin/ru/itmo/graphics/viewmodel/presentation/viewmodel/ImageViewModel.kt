@@ -26,6 +26,8 @@ import ru.itmo.graphics.viewmodel.tools.asByteArray
 import ru.itmo.graphics.viewmodel.tools.convertColorSpace
 import ru.itmo.graphics.viewmodel.tools.convertGamma
 import ru.itmo.graphics.viewmodel.tools.createGradient
+import ru.itmo.graphics.viewmodel.tools.drawInPlace
+import ru.itmo.graphics.viewmodel.tools.plotLineFacade
 import ru.itmo.graphics.viewmodel.tools.readImageV2
 import ru.itmo.graphics.viewmodel.tools.toBitmap
 import java.io.File
@@ -79,7 +81,8 @@ class ImageViewModel(
             is SendDrawingCoordinates -> {
                 if (!state.value.drawingModeEnable) return
 
-                if (state.value.firstDrawPoint == null) {
+                val firstDrawPoint = state.value.firstDrawPoint
+                if (firstDrawPoint == null) {
                     state.update {
                         it.copy(
                             log = "Set first point to ${event.coordinates}",
@@ -87,7 +90,6 @@ class ImageViewModel(
                         )
                     }
                 } else {
-                    val firstDrawPoint = state.value.firstDrawPoint
                     val log = "Draw line with coordinates $firstDrawPoint and ${event.coordinates}"
                     state.update {
                         it.copy(
@@ -98,8 +100,43 @@ class ImageViewModel(
                     }
                     scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
                         logger.info { log }
-                        // do not forget about mono-channel-mode
-                        // drawLine(start, end, color, pixelData)
+                        state.value.pixelData?.let { pixelData ->
+                            // do not forget about mono-channel-mode
+                            // drawLine(start, end, color, pixelData)
+                            val lineColor = state.value.lineColor
+                            val opacity = state.value.lineOpacity
+                            val thick = state.value.lineWidth
+
+                            plotLineFacade(
+                                firstDrawPoint.x.toFloat(),
+                                firstDrawPoint.y.toFloat(),
+                                event.coordinates.x.toFloat(),
+                                event.coordinates.y.toFloat(),
+                                lineColor.copy(
+                                    channelOne = lineColor.channelOne * opacity,
+                                    channelTwo = lineColor.channelTwo * opacity,
+                                    channelThree = lineColor.channelThree * opacity,
+                                ),
+                                pixelData,
+                                thick,
+                                opacity,
+                            )
+                            // debug purposes
+                            drawInPlace(pixelData, firstDrawPoint.x, firstDrawPoint.y, listOf(0.0f, 0.0f, 0.0f), 1f)
+                            drawInPlace(
+                                pixelData,
+                                event.coordinates.x,
+                                event.coordinates.y,
+                                listOf(0.0f, 0.0f, 0.0f),
+                                1f,
+                            )
+                            state.update {
+                                it.copy(
+                                    log = "Drawing finished!",
+                                    imageVersion = it.imageVersion + 1,
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -18,6 +18,7 @@ class PixelData(
             data.subList(row * width * 3 + column * 3, row * width * 3 + column * 3 + 3)
         }.onFailure {
             log.info { "$row $column" }
+            log.info { "${row * width * 3 + column * 3} ${row * width * 3 + column * 3 + 3}" }
             log.info { "$width $height" }
         }.getOrThrow()
     }
