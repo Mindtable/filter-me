@@ -203,13 +203,13 @@ fun PixelData.convertGamma(
 
             if (newGamma == 0f) {
                 if (oldGamma != 0f) {
-                    GammaConversion.applyGamma(pixel, oldGamma / 2.2f)
+                    GammaConversion.applyGamma(pixel, oldGamma / 2.4f)
                 }
             } else {
                 if (oldGamma != 0f) {
                     GammaConversion.applyGamma(pixel, oldGamma / newGamma)
                 } else {
-                    GammaConversion.applyGamma(pixel, 2.2f / newGamma)
+                    GammaConversion.applyGamma(pixel, 2.4f / newGamma)
                 }
             }
         }

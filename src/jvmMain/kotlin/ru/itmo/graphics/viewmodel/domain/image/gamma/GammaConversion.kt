@@ -16,7 +16,7 @@ object GammaConversion {
 
     fun applyReverseGamma(bb: MutableList<Float>, gamma: Float) {
         if (gamma == 0f) {
-            applyGamma(bb, 1 / 2.2f)
+            applyGamma(bb, 1 / 2.4f)
         } else {
             applyGamma(bb, 1 / gamma)
         }
