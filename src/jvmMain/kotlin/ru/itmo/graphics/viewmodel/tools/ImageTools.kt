@@ -113,26 +113,7 @@ fun PixelData.asByteArray(
             bb[1] = pixel[1]
             bb[2] = pixel[2]
 
-            if (isMonochromeMode) {
-                if (channel == ImageChannel.CHANNEL_ONE) {
-                    bb[1] = bb[0]
-                    bb[2] = bb[0]
-                } else if (channel == ImageChannel.CHANNEL_TWO) {
-                    bb[0] = bb[1]
-                    bb[2] = bb[1]
-                } else if (channel == ImageChannel.CHANNEL_THREE) {
-                    bb[0] = bb[2]
-                    bb[1] = bb[2]
-                }
-            } else {
-                if (channel != ImageChannel.ALL) {
-                    colorSpace.separateChannel(bb, channel)
-                }
-
-                colorSpace.toRgb(bb)
-            }
-
-            GammaConversion.applyGamma(bb, gamma)
+            applyImageSettings(bb, isMonochromeMode, channel, colorSpace, gamma)
 
             val channelOne = bb[0]
             val channelTwo = bb[1]
@@ -145,6 +126,35 @@ fun PixelData.asByteArray(
         }
     }
     return byteArray
+}
+
+fun applyImageSettings(
+    bb: MutableList<Float>,
+    isMonochromeMode: Boolean,
+    channel: ImageChannel,
+    colorSpace: ApplicationColorSpace,
+    gamma: Float,
+) {
+    if (isMonochromeMode) {
+        if (channel == ImageChannel.CHANNEL_ONE) {
+            bb[1] = bb[0]
+            bb[2] = bb[0]
+        } else if (channel == ImageChannel.CHANNEL_TWO) {
+            bb[0] = bb[1]
+            bb[2] = bb[1]
+        } else if (channel == ImageChannel.CHANNEL_THREE) {
+            bb[0] = bb[2]
+            bb[1] = bb[2]
+        }
+    } else {
+        if (channel != ImageChannel.ALL) {
+            colorSpace.separateChannel(bb, channel)
+        }
+
+        colorSpace.toRgb(bb)
+    }
+
+    GammaConversion.applyGamma(bb, gamma)
 }
 
 fun PixelData.convertColorSpace(
@@ -193,13 +203,13 @@ fun PixelData.convertGamma(
 
             if (newGamma == 0f) {
                 if (oldGamma != 0f) {
-                    GammaConversion.applyGamma(pixel, oldGamma / 2.4f)
+                    GammaConversion.applyGamma(pixel, oldGamma / 2.2f)
                 }
             } else {
                 if (oldGamma != 0f) {
                     GammaConversion.applyGamma(pixel, oldGamma / newGamma)
                 } else {
-                    GammaConversion.applyGamma(pixel, 2.4f / newGamma)
+                    GammaConversion.applyGamma(pixel, 2.2f / newGamma)
                 }
             }
         }
@@ -240,14 +250,17 @@ fun createGradient(height: Int = 400, width: Int = 600): PixelData {
     return pixelData
 }
 
-fun quantizeInPlace(bb: MutableList<Float>, levelsCount: Int) {
+fun quantizeInPlace(bb: MutableList<Float>, levelsCount: Int, gamma: Float) {
     val fLevels = (1 shl levelsCount - 1).toFloat()
 
+    GammaConversion.applyGamma(bb, gamma)
     for (i in bb.indices) {
         val t1 = bb[i] * fLevels
         val t2 = t1.roundToInt() / fLevels
-        bb[i] = clamp(t2)
+        bb[i] = t2
     }
+    GammaConversion.applyReverseGamma(bb, gamma)
+    bb.map { x -> clamp(x) }
 }
 
 fun clamp(value: Float): Float = value.coerceIn(0.0f, 1.0f)

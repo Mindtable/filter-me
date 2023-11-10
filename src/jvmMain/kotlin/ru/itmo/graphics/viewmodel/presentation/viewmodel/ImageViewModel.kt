@@ -290,6 +290,7 @@ class ImageViewModel(
                         state.value.colorSpace,
                         event.bitness,
                         state.value.isMonochromeMode,
+                        state.value.gamma,
                     )
 
                     if (event.preview == true) {

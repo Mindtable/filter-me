@@ -14,6 +14,14 @@ object GammaConversion {
         bb[2] = bb[2].pow(1 / gamma)
     }
 
+    fun applyReverseGamma(bb: MutableList<Float>, gamma: Float) {
+        if (gamma == 0f) {
+            applyGamma(bb, 1 / 2.2f)
+        } else {
+            applyGamma(bb, 1 / gamma)
+        }
+    }
+
     private fun performSRGB(bb: MutableList<Float>) {
         val cie = Array(3) { 0f }
 

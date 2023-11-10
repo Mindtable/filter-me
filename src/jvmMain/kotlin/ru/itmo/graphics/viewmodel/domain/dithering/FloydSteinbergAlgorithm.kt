@@ -2,6 +2,7 @@ package ru.itmo.graphics.viewmodel.domain.dithering
 
 import ru.itmo.graphics.viewmodel.domain.PixelData
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
+import ru.itmo.graphics.viewmodel.domain.image.gamma.GammaConversion
 import ru.itmo.graphics.viewmodel.tools.clamp
 import ru.itmo.graphics.viewmodel.tools.quantizeInPlace
 
@@ -12,6 +13,7 @@ object FloydSteinbergAlgorithm : DitheringAlgorithm {
         colorSpace: ApplicationColorSpace,
         bitness: Int,
         isMonochrome: Boolean,
+        gamma: Float,
     ) {
         for (i in 0..<pixelData.height) {
             for (j in 0..<pixelData.width) {
@@ -20,12 +22,18 @@ object FloydSteinbergAlgorithm : DitheringAlgorithm {
 
                 val originalPixel = pixel.toMutableList()
 
-                quantizeInPlace(pixel, bitness)
+                quantizeInPlace(pixel, bitness, gamma)
+
+                GammaConversion.applyGamma(originalPixel, gamma)
+                GammaConversion.applyGamma(pixel, gamma)
+
                 val errors = listOf(
                     originalPixel[0] - pixel[0],
                     originalPixel[1] - pixel[1],
                     originalPixel[2] - pixel[2],
                 )
+
+                GammaConversion.applyReverseGamma(pixel, gamma)
 
                 val updatePixels = { iOffset: Int, jOffset: Int, coeff: Float ->
                     val newI = i + iOffset

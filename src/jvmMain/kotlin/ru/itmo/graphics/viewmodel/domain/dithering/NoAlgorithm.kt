@@ -10,6 +10,7 @@ object NoAlgorithm : DitheringAlgorithm {
         colorSpace: ApplicationColorSpace,
         bitness: Int,
         isMonochrome: Boolean,
+        gamma: Float,
     ) {
         // no algo
     }

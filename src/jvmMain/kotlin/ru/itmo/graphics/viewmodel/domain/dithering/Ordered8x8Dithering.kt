@@ -23,6 +23,7 @@ object Ordered8x8Dithering : DitheringAlgorithm {
         colorSpace: ApplicationColorSpace,
         bitness: Int,
         isMonochrome: Boolean,
+        gamma: Float,
     ) {
         val base = 2f.pow(bitness)
         val step = 1.0f / base
@@ -38,7 +39,7 @@ object Ordered8x8Dithering : DitheringAlgorithm {
                         }
                     }
 
-                    quantizeInPlace(pixel, bitness)
+                    quantizeInPlace(pixel, bitness, gamma)
                 }
             }
         }

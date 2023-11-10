@@ -11,12 +11,13 @@ object QuantizationAlgorithm : DitheringAlgorithm {
         colorSpace: ApplicationColorSpace,
         bitness: Int,
         isMonochrome: Boolean,
+        gamma: Float,
     ) {
         for (i in 0..<pixelData.height) {
             for (j in 0..<pixelData.width) {
                 val pixel = pixelData.getPixel(i, j)
                 colorSpace.toRgb(pixel)
-                quantizeInPlace(pixel, bitness)
+                quantizeInPlace(pixel, bitness, gamma)
                 colorSpace.fromRgb(pixel)
             }
         }

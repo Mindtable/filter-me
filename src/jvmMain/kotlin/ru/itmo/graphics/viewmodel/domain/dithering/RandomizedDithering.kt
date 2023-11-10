@@ -16,6 +16,7 @@ object RandomizedDithering : DitheringAlgorithm {
         colorSpace: ApplicationColorSpace,
         bitness: Int,
         isMonochrome: Boolean,
+        gamma: Float,
     ) {
         val base = 2f.pow(bitness)
         for (i in 0..<pixelData.height) {
@@ -34,7 +35,7 @@ object RandomizedDithering : DitheringAlgorithm {
                         }
                     }
 
-                    quantizeInPlace(pixel, bitness)
+                    quantizeInPlace(pixel, bitness, gamma)
                 }
             }
         }
