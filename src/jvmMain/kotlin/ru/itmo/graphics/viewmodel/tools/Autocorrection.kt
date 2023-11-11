@@ -45,6 +45,17 @@ fun findMinMax(
     var maxBrightness: Int? = null
     var maxBrightnessAccum = 0f
 
+    if (channel == ImageChannel.ALL) {
+        val (minBrightness1, maxBrightness1) = findMinMax(distribution, coefficient, ImageChannel.CHANNEL_ONE)
+        val (minBrightness2, maxBrightness2) = findMinMax(distribution, coefficient, ImageChannel.CHANNEL_TWO)
+        val (minBrightness3, maxBrightness3) = findMinMax(distribution, coefficient, ImageChannel.CHANNEL_THREE)
+
+        return AutoCorrectionParameters(
+            listOf(minBrightness1, minBrightness2, minBrightness3).min(),
+            listOf(maxBrightness1, maxBrightness2, maxBrightness3).max(),
+        )
+    }
+
     val distributionArray = when (channel) {
         ImageChannel.CHANNEL_ONE -> distribution.channelOne
         ImageChannel.CHANNEL_TWO -> distribution.channelTwo

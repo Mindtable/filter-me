@@ -32,8 +32,9 @@ import ru.itmo.graphics.viewmodel.domain.asBb
 import ru.itmo.graphics.viewmodel.domain.asComposeColor
 import ru.itmo.graphics.viewmodel.domain.asPixel
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.HsvColorSpace
-import ru.itmo.graphics.viewmodel.presentation.view.settings.core.DescriptionText
+import ru.itmo.graphics.viewmodel.domain.image.gamma.GammaConversion
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
+import ru.itmo.graphics.viewmodel.presentation.view.settings.core.DescriptionText
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsViewProvider
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageError
@@ -156,6 +157,7 @@ private fun LineSettings(state: ImageState, onEvent: (ImageEvent) -> Unit) {
                     }
                     val bb = currentColor.toColor().let { (r, g, b) -> mutableListOf(r, g, b) }
                     state.colorSpace.fromRgb(bb)
+                    GammaConversion.applyGamma(bb, state.gamma)
                     onEvent(
                         UpdateLineSettings(
                             lineWidth = lineWidth,

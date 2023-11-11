@@ -29,7 +29,6 @@ import ru.itmo.graphics.viewmodel.tools.autoCorrect
 import ru.itmo.graphics.viewmodel.tools.convertColorSpace
 import ru.itmo.graphics.viewmodel.tools.convertGamma
 import ru.itmo.graphics.viewmodel.tools.createGradient
-import ru.itmo.graphics.viewmodel.tools.drawInPlace
 import ru.itmo.graphics.viewmodel.tools.plotLineFacade
 import ru.itmo.graphics.viewmodel.tools.readImageV2
 import ru.itmo.graphics.viewmodel.tools.toBitmap
@@ -130,6 +129,8 @@ class ImageViewModel(
                             val opacity = state.value.lineOpacity
                             val thick = state.value.lineWidth
 
+                            pixelData.convertGamma(state.value.gamma, 1.0f)
+
                             plotLineFacade(
                                 firstDrawPoint.x.toFloat(),
                                 firstDrawPoint.y.toFloat(),
@@ -144,15 +145,17 @@ class ImageViewModel(
                                 thick,
                                 opacity,
                             )
-                            // debug purposes
-                            drawInPlace(pixelData, firstDrawPoint.x, firstDrawPoint.y, listOf(0.0f, 0.0f, 0.0f), 1f)
-                            drawInPlace(
-                                pixelData,
-                                event.coordinates.x,
-                                event.coordinates.y,
-                                listOf(0.0f, 0.0f, 0.0f),
-                                1f,
-                            )
+//                            // debug purposes
+//                            drawInPlace(pixelData, firstDrawPoint.x, firstDrawPoint.y, listOf(0.0f, 0.0f, 0.0f), 1f)
+//                            drawInPlace(
+//                                pixelData,
+//                                event.coordinates.x,
+//                                event.coordinates.y,
+//                                listOf(0.0f, 0.0f, 0.0f),
+//                                1f,
+//                            )
+
+                            pixelData.convertGamma(1.0f, state.value.gamma)
                             state.update {
                                 it.copy(
                                     log = "Drawing finished!",
