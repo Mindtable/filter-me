@@ -24,8 +24,8 @@ object AtkinsonAlgorithm : DitheringAlgorithm {
 
                 quantizeInPlace(pixel, bitness, gamma)
 
-                GammaConversion.applyGamma(originalPixel, gamma)
-                GammaConversion.applyGamma(pixel, gamma)
+//                GammaConversion.applyGamma(originalPixel, gamma)
+//                GammaConversion.applyGamma(pixel, gamma)
 
                 val errors = listOf(
                     originalPixel[0] - pixel[0],
@@ -33,7 +33,7 @@ object AtkinsonAlgorithm : DitheringAlgorithm {
                     originalPixel[2] - pixel[2],
                 )
 
-                GammaConversion.applyReverseGamma(pixel, gamma)
+//                GammaConversion.applyReverseGamma(pixel, gamma)
 
                 val updatePixels = { iOffset: Int, jOffset: Int, coeff: Float ->
                     val newI = i + iOffset
@@ -49,11 +49,11 @@ object AtkinsonAlgorithm : DitheringAlgorithm {
                 }
                 colorSpace.fromRgb(pixel)
 
+                updatePixels(0, 1, 1 / 8f)
+                updatePixels(+0, 2, 1 / 8f)
+                updatePixels(1, -1, 1 / 8f)
                 updatePixels(+1, 0, 1 / 8f)
                 updatePixels(+2, 0, 1 / 8f)
-                updatePixels(-1, 1, 1 / 8f)
-                updatePixels(+0, 1, 1 / 8f)
-                updatePixels(+0, 2, 1 / 8f)
                 updatePixels(+1, 1, 1 / 8f)
             }
         }

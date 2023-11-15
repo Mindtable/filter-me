@@ -154,7 +154,7 @@ fun applyImageSettings(
         colorSpace.toRgb(bb)
     }
 
-    GammaConversion.applyGamma(bb, gamma)
+//    GammaConversion.applyGamma(bb, gamma)
 }
 
 fun PixelData.convertColorSpace(
@@ -231,8 +231,8 @@ fun Float.roundToEven(): Int {
     }
 }
 
-fun createGradient(height: Int = 400, width: Int = 600): PixelData {
-    val step = 1.0f / width
+fun createGradient(height: Int = 1080, width: Int = 1920): PixelData {
+    val step = 1.0f / (width - 1)
     val pixelData = PixelData(MutableList(height * width * 3) { 0f }, height, width)
 
     for (i in 0..<height) {
@@ -244,6 +244,8 @@ fun createGradient(height: Int = 400, width: Int = 600): PixelData {
             pixel[0] = color
             pixel[1] = color
             pixel[2] = color
+
+//            GammaConversion.applyGamma(pixel, 1 / 2.4f)
         }
     }
 
@@ -251,15 +253,15 @@ fun createGradient(height: Int = 400, width: Int = 600): PixelData {
 }
 
 fun quantizeInPlace(bb: MutableList<Float>, levelsCount: Int, gamma: Float) {
-    val fLevels = (1 shl levelsCount - 1).toFloat()
+    val fLevels = (1 shl levelsCount).toFloat() - 1f
 
-    GammaConversion.applyGamma(bb, gamma)
+//    GammaConversion.applyGamma(bb, gamma)
     for (i in bb.indices) {
         val t1 = bb[i] * fLevels
         val t2 = t1.roundToInt() / fLevels
         bb[i] = t2
     }
-    GammaConversion.applyReverseGamma(bb, gamma)
+//    GammaConversion.applyReverseGamma(bb, gamma)
     bb.map { x -> clamp(x) }
 }
 

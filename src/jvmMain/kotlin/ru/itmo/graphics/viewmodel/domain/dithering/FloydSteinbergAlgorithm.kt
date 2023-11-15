@@ -1,10 +1,13 @@
 package ru.itmo.graphics.viewmodel.domain.dithering
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import ru.itmo.graphics.viewmodel.domain.PixelData
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
 import ru.itmo.graphics.viewmodel.domain.image.gamma.GammaConversion
 import ru.itmo.graphics.viewmodel.tools.clamp
 import ru.itmo.graphics.viewmodel.tools.quantizeInPlace
+
+private val log = KotlinLogging.logger { }
 
 object FloydSteinbergAlgorithm : DitheringAlgorithm {
 
@@ -20,12 +23,12 @@ object FloydSteinbergAlgorithm : DitheringAlgorithm {
                 val pixel = pixelData.getPixel(i, j)
                 colorSpace.toRgb(pixel)
 
-                val originalPixel = pixel.toMutableList()
+                val originalPixel = ArrayList(pixel)
 
                 quantizeInPlace(pixel, bitness, gamma)
 
-                GammaConversion.applyGamma(originalPixel, gamma)
-                GammaConversion.applyGamma(pixel, gamma)
+//                GammaConversion.applyGamma(originalPixel, gamma)
+//                GammaConversion.applyGamma(pixel, gamma)
 
                 val errors = listOf(
                     originalPixel[0] - pixel[0],
@@ -33,7 +36,7 @@ object FloydSteinbergAlgorithm : DitheringAlgorithm {
                     originalPixel[2] - pixel[2],
                 )
 
-                GammaConversion.applyReverseGamma(pixel, gamma)
+//                GammaConversion.applyReverseGamma(pixel, gamma)
 
                 val updatePixels = { iOffset: Int, jOffset: Int, coeff: Float ->
                     val newI = i + iOffset
@@ -49,9 +52,9 @@ object FloydSteinbergAlgorithm : DitheringAlgorithm {
                 }
                 colorSpace.fromRgb(pixel)
 
-                updatePixels(+1, 0, 7 / 16f)
-                updatePixels(-1, 1, 3 / 16f)
-                updatePixels(+0, 1, 5 / 16f)
+                updatePixels(+0, 1, 7 / 16f)
+                updatePixels(1, -1, 3 / 16f)
+                updatePixels(+1, 0, 5 / 16f)
                 updatePixels(+1, 1, 1 / 16f)
             }
         }

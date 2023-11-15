@@ -69,7 +69,7 @@ class ImageViewModel(
             ComputeGradient -> {
                 scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
                     state.update {
-                        val pixelData = createGradient()
+                        val pixelData = createGradient(400, 600)
                         val imageModel = ImageModel(
                             file = File("/${Instant.now()}"),
                             type = PnmP6,
