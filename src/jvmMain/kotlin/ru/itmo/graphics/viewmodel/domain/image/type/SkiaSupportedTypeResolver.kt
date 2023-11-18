@@ -13,7 +13,6 @@ class SkiaSupportedTypeResolver : TypeResolver {
         "ICO",
         "JPEG",
         "JPG",
-        "PNG",
         "WBMP",
         "WebP",
     )

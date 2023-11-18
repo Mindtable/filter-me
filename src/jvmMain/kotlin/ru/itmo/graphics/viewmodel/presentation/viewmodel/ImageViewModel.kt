@@ -3,18 +3,21 @@ package ru.itmo.graphics.viewmodel.presentation.viewmodel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Canvas
-import org.jetbrains.skia.ColorAlphaType.PREMUL
+import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
 import ru.itmo.graphics.viewmodel.domain.ImageModel
 import ru.itmo.graphics.viewmodel.domain.PixelData
 import ru.itmo.graphics.viewmodel.domain.image.type.FileTypeResolver
+import ru.itmo.graphics.viewmodel.domain.model.image.Png
 import ru.itmo.graphics.viewmodel.domain.model.image.PnmP5
 import ru.itmo.graphics.viewmodel.domain.model.image.PnmP6
 import ru.itmo.graphics.viewmodel.domain.scale.ImageScaling
@@ -32,9 +35,12 @@ import ru.itmo.graphics.viewmodel.tools.convertColorSpace
 import ru.itmo.graphics.viewmodel.tools.convertGamma
 import ru.itmo.graphics.viewmodel.tools.createGradient
 import ru.itmo.graphics.viewmodel.tools.plotLineFacade
+import ru.itmo.graphics.viewmodel.tools.png.readPng
 import ru.itmo.graphics.viewmodel.tools.readImageV2
 import ru.itmo.graphics.viewmodel.tools.toBitmap
+import java.io.DataInputStream
 import java.io.File
+import java.io.FileInputStream
 import java.time.Instant
 import kotlin.math.max
 import kotlin.system.measureTimeMillis
@@ -182,10 +188,12 @@ class ImageViewModel(
                 )
 
                 scope.launch {
-                    if (state.value.channel == ImageChannel.ALL) {
-                        imageModel.saveTo(event.path, bitmapToSave)
-                    } else {
-                        imageModel.saveTo(event.path, bitmapToSave, PnmP5)
+                    withContext(Dispatchers.IO) {
+                        if (state.value.channel == ImageChannel.ALL) {
+                            imageModel.saveTo(event.path, bitmapToSave, pixelData = imageState.pixelData)
+                        } else {
+                            imageModel.saveTo(event.path, bitmapToSave, PnmP5, pixelData = imageState.pixelData)
+                        }
                     }
 
                     state.update {
@@ -227,9 +235,14 @@ class ImageViewModel(
 
                 scope.launch {
                     if (state.value.channel == ImageChannel.ALL) {
-                        imageModel.saveTo(imageModel.file.absolutePath, bitmapToSave)
+                        imageModel.saveTo(imageModel.file.absolutePath, bitmapToSave, pixelData = imageState.pixelData)
                     } else {
-                        imageModel.saveTo(imageModel.file.absolutePath, bitmapToSave, PnmP5)
+                        imageModel.saveTo(
+                            imageModel.file.absolutePath,
+                            bitmapToSave,
+                            PnmP5,
+                            pixelData = imageState.pixelData,
+                        )
                     }
 
                     state.update {
@@ -499,10 +512,16 @@ class ImageViewModel(
                             readImageV2(imageModel)
                         }
 
+                        type is Png -> {
+                            DataInputStream(FileInputStream(file)).use {
+                                it.readPng()
+                            }
+                        }
+
                         else -> {
                             val image = Image.makeFromEncoded(bytes)
                             val bitmap = Bitmap()
-                            bitmap.allocPixels(ImageInfo.makeN32(image.width, image.height, PREMUL))
+                            bitmap.allocPixels(ImageInfo.makeN32(image.width, image.height, ColorAlphaType.PREMUL))
                             val canvas = Canvas(bitmap)
                             canvas.drawImage(image, 0f, 0f)
                             bitmap.setImmutable()

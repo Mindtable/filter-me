@@ -17,6 +17,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import ru.itmo.graphics.viewmodel.domain.image.type.FileTypeResolver
 import ru.itmo.graphics.viewmodel.domain.image.type.P5TypeResolver
 import ru.itmo.graphics.viewmodel.domain.image.type.P6TypeResolver
+import ru.itmo.graphics.viewmodel.domain.image.type.PngResolver
 import ru.itmo.graphics.viewmodel.domain.image.type.SkiaSupportedTypeResolver
 import ru.itmo.graphics.viewmodel.presentation.view.main.MainWindowView
 import ru.itmo.graphics.viewmodel.presentation.view.main.MenuBarView
@@ -44,6 +45,7 @@ fun main() {
                     listOf(
                         P5TypeResolver(),
                         P6TypeResolver(),
+                        PngResolver(),
                         SkiaSupportedTypeResolver(),
                     ),
                 ),

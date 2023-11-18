@@ -154,7 +154,7 @@ fun applyImageSettings(
         colorSpace.toRgb(bb)
     }
 
-//    GammaConversion.applyGamma(bb, gamma)
+    GammaConversion.applyGamma(bb, gamma)
 }
 
 fun PixelData.convertColorSpace(

@@ -3,8 +3,11 @@ package ru.itmo.graphics.viewmodel.domain
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.skia.Bitmap
 import ru.itmo.graphics.viewmodel.domain.model.ImageType
+import ru.itmo.graphics.viewmodel.domain.model.image.Png
+import ru.itmo.graphics.viewmodel.tools.png.writePngToFile
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.time.Instant
 
 data class ImageModel(
@@ -18,7 +21,12 @@ data class ImageModel(
         KotlinLogging.logger { }
     }
 
-    fun saveTo(fileName: String, bitmapToSave: Bitmap? = null, imageType: ImageType? = null) {
+    fun saveTo(
+        fileName: String,
+        bitmapToSave: Bitmap? = null,
+        imageType: ImageType? = null,
+        pixelData: PixelData? = null,
+    ) {
         val finalBitmap: Bitmap? = bitmapToSave ?: bitmap
         val type: ImageType = imageType ?: type
 
@@ -29,6 +37,10 @@ data class ImageModel(
             type.writeFile(byteStream, finalBitmap)
 
             File(fileName).writeBytes(byteStream.toByteArray())
+        } else if (type is Png) {
+            FileOutputStream(fileName).use {
+                pixelData!!.writePngToFile(it)
+            }
         } else {
             log.info { "Save by default way" }
             File(fileName).writeBytes(data)
