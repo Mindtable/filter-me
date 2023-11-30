@@ -17,6 +17,8 @@ import ru.itmo.graphics.viewmodel.domain.PixelData
 import ru.itmo.graphics.viewmodel.domain.image.type.FileTypeResolver
 import ru.itmo.graphics.viewmodel.domain.model.image.PnmP5
 import ru.itmo.graphics.viewmodel.domain.model.image.PnmP6
+import ru.itmo.graphics.viewmodel.domain.scale.ImageScaling
+import ru.itmo.graphics.viewmodel.domain.scale.utils.PixelDirection
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.NONE
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.OPEN
 import ru.itmo.graphics.viewmodel.presentation.view.main.FileDialogType.SAVE
@@ -371,6 +373,64 @@ class ImageViewModel(
                         it.copy(
                             log = "Image gamma assigned to $newGamma",
                             gamma = newGamma,
+                            imageVersion = it.imageVersion + 1,
+                        )
+                    }
+                }
+            }
+
+            is ScaleImage -> {
+                scope.launch(SupervisorJob() + coroutineExceptionHandler()) {
+                    if (event.newWidth < 1 || event.newHeight < 1) {
+                        throw IllegalStateException("Image dimensions must be positive!")
+                    }
+
+                    val height = state.value.pixelData?.height ?: throw IllegalStateException("Image model cannot be null!")
+                    val width = state.value.pixelData!!.width
+
+                    state.value.pixelData!!.consumeWithEachPixel { bb -> state.value.colorSpace.toRgb(bb) }
+                    val scaledOnceImage = state.value.pixelData!!.copy()
+                    val scaledTwiceImage = scaledOnceImage.copy()
+
+                    val scaleWidth = { inputImage: PixelData, outputImage: PixelData ->
+                        ImageScaling.scaleImage(
+                            width,
+                            event.newWidth,
+                            event.algorithm,
+                            PixelDirection.ROW,
+                            event.widthCenter,
+                            inputImage,
+                            outputImage,
+                        )
+                    }
+
+                    val scaleHeight = { inputImage: PixelData, outputImage: PixelData ->
+                        ImageScaling.scaleImage(
+                            height,
+                            event.newHeight,
+                            event.algorithm,
+                            PixelDirection.COLUMN,
+                            event.heightCenter,
+                            inputImage,
+                            outputImage,
+                        )
+                    }
+
+                    if (height * event.newWidth > event.newHeight * width) {
+                        scaleWidth(state.value.pixelData!!, scaledOnceImage)
+                        scaleHeight(scaledOnceImage, scaledTwiceImage)
+                    } else {
+                        scaleHeight(state.value.pixelData!!, scaledOnceImage)
+                        scaleWidth(scaledOnceImage, scaledTwiceImage)
+                    }
+
+                    scaledTwiceImage.consumeWithEachPixel { bb -> state.value.colorSpace.fromRgb(bb) }
+
+                    logger.info { "Image scaled to ${event.newWidth} x ${event.newHeight}" }
+                    state.update {
+                        it.copy(
+                            log = "Image scaled to ${event.newWidth} x ${event.newHeight}",
+                            pixelData = scaledTwiceImage,
                             imageVersion = it.imageVersion + 1,
                         )
                     }

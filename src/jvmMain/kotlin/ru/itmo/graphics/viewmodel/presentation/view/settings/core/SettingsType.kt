@@ -9,4 +9,5 @@ enum class SettingsType(
     WIDTHCOLORPICKER("Line Settings", "Line settings"),
     DITHERING("Dithering", "Dithering settings"),
     AUTOCORRECTION("AutoCorrection", "Autocorrection settings"),
+    SCALING("Scaling", "Scaling settings")
 }

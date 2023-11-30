@@ -25,6 +25,7 @@ import ru.itmo.graphics.viewmodel.presentation.view.settings.colorpicker.LineSet
 import ru.itmo.graphics.viewmodel.presentation.view.settings.dithering.DitheringSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.gamma.GammaSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.settings.histogram.AnotherSettingsProvider
+import ru.itmo.graphics.viewmodel.presentation.view.settings.scaling.ScalingSettingsProvider
 import ru.itmo.graphics.viewmodel.presentation.view.theme.AppTheme
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.CloseSettings
 import ru.itmo.graphics.viewmodel.presentation.viewmodel.ImageViewModel
@@ -57,6 +58,7 @@ fun main() {
                 LineSettingsProvider(),
                 DitheringSettingsProvider(),
                 AutoCorrectionSettingsProvider(),
+                ScalingSettingsProvider(),
             ).associateBy { it.type }
         }
 

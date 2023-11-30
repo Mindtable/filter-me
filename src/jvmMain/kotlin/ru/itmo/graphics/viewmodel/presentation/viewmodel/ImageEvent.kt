@@ -3,6 +3,7 @@ package ru.itmo.graphics.viewmodel.presentation.viewmodel
 import ru.itmo.graphics.viewmodel.domain.Coordinates
 import ru.itmo.graphics.viewmodel.domain.Pixel
 import ru.itmo.graphics.viewmodel.domain.image.colorspace.ApplicationColorSpace
+import ru.itmo.graphics.viewmodel.domain.scale.ScalingAlgorithm
 import ru.itmo.graphics.viewmodel.presentation.view.main.DitheringAlgo
 import ru.itmo.graphics.viewmodel.presentation.view.main.ImageChannel
 import ru.itmo.graphics.viewmodel.presentation.view.settings.core.SettingsType
@@ -42,3 +43,11 @@ data object DrawingModeSwitch : ImageEvent
 data class SendDrawingCoordinates(val coordinates: Coordinates) : ImageEvent
 data object ComputeGradient : ImageEvent
 data class AutoCorrect(val coefficient: Float) : ImageEvent
+
+data class ScaleImage(
+    val newWidth: Int,
+    val newHeight: Int,
+    val widthCenter: Float,
+    val heightCenter: Float,
+    val algorithm: ScalingAlgorithm,
+) : ImageEvent
